@@ -1,0 +1,17 @@
+# Core data analysis
+pandas
+numpy
+matplotlib
+seaborn
+
+# Statistics / forecasting
+scikit-learn
+statsmodels
+xgboost
+scipy
+
+# Database connectivity
+mysql-connector-python
+
+# Notebook
+jupyter
