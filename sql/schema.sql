@@ -1,0 +1,3 @@
+-- Supply Chain Demand Forecasting & Inventory Optimization
+-- Database schema will be defined after dataset selection.
+-- Do not create assumed tables before the source data is validated.
