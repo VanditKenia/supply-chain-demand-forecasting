@@ -256,25 +256,154 @@ The selected dataset will be recorded in this document after evaluation.
 
 ## 9. Selected Dataset
 
-**Status:** NOT SELECTED
+**Status:** SELECTED
 
-Once selected, record:
+### Dataset Identity
 
-- Dataset name
-- Source
-- URL
-- License/usage terms
-- Row count
-- Column count
-- Date range
-- Number of unique products/SKUs
-- Number of locations
-- Important columns
-- Known data-quality issues
-- Why it was selected
-- Limitations
+**Dataset Name:** Retail Store Inventory and Demand Forecasting
 
-No dataset-specific assumptions should be added before the dataset is inspected.
+**Source:** Kaggle
+
+**URL:** https://www.kaggle.com/datasets/atomicd/retail-store-inventory-and-demand-forecasting
+
+**License:** Apache 2.0
+
+**Rows:** 76,000
+
+**Original Columns:** 16
+
+**Date Range:** 2022-01-01 to 2024-01-30
+
+**Unique Dates:** 760
+
+**Stores:** 5
+
+**Products:** 20
+
+**Categories:** 5
+
+**Regions:** 4
+
+### Exact Analytical Grain
+
+**Date × Store ID × Product ID**
+
+Validation established:
+
+- 76,000 unique grain records
+- 0 duplicate grain records
+- 100 Store × Product combinations
+- 760 observations per Store × Product combination
+- 0 internal date gaps
+- 0 globally missing dates
+- 100% temporal panel coverage
+
+### Source Columns
+
+1. Date
+2. Store ID
+3. Product ID
+4. Category
+5. Region
+6. Inventory Level
+7. Units Sold
+8. Units Ordered
+9. Price
+10. Discount
+11. Weather Condition
+12. Promotion
+13. Competitor Pricing
+14. Seasonality
+15. Epidemic
+16. Demand
+
+### Forecasting Target
+
+**Demand**
+
+Demand is distinct from Units Sold. In the semantic audit:
+
+- Demand > Units Sold: 70.32% of records
+- Demand = Units Sold: 2.05%
+- Demand < Units Sold: 27.63%
+
+Simple reconstruction tests did not establish Demand as a direct formula of Units Sold, Inventory Level, or Units Ordered.
+
+### Inventory-Relevant Fields
+
+- Inventory Level
+- Units Sold
+- Units Ordered
+- Demand
+
+The dataset contains 406 records where Inventory Level = 0. All 406 also have Units Sold = 0 and Demand > 0. These records will be treated as **stockout-associated demand observations** unless further analysis establishes stronger semantics.
+
+### Commercial / Contextual Features
+
+- Price
+- Discount
+- Promotion
+- Competitor Pricing
+- Weather Condition
+- Seasonality
+- Epidemic
+- Store ID
+- Region
+- Product ID
+- Category
+
+### Data Quality Validation
+
+The dataset passed the initial structural audit:
+
+- Missing values: 0
+- Duplicate rows: 0
+- Duplicate Date × Store × Product records: 0
+- Missing global dates: 0
+- Internal Store × Product date gaps: 0
+- Complete temporal coverage: 100%
+
+### Category Semantics
+
+Product ID is **not globally mapped to one category**.
+
+All 20 products appear under multiple categories. However:
+
+- Category is consistent within each Store × Product combination.
+- Store × Product pairs with multiple categories: 0.
+
+Therefore, the project must **not model Category as a Product master attribute**. Category should be treated as a contextual attribute at the Store × Product analytical level.
+
+### Region Semantics
+
+Each Store maps to exactly one Region, while products can appear across multiple regions.
+
+Therefore:
+
+- Store → Region is stable.
+- Product → Region is not unique.
+
+### Lead Time Limitation
+
+**No explicit lead-time column is present.**
+
+Lead time must therefore **not** be represented as observed source data.
+
+If lead time is required for safety-stock/reorder-point analysis, it will be introduced as an explicitly documented business assumption or scenario parameter.
+
+### Known Limitations
+
+1. The source dataset does not provide supplier lead-time observations.
+2. Category is not globally unique to Product ID.
+3. The semantic meaning of Demand versus Units Sold must be treated carefully; stockout-associated observations provide evidence of unmet-demand-like behavior but do not by themselves prove a real-world lost-sales definition.
+4. Forecast features must be classified according to whether they would actually be known at the chosen forecast origin.
+5. Inventory Level, Units Sold, Units Ordered, weather, promotion, competitor pricing and other operational variables require time-aware leakage assessment before inclusion in a forecasting model.
+
+### Why This Dataset Was Selected
+
+The dataset satisfies the project's core structural requirements while providing both forecasting and inventory-analysis fields. Its complete daily Store × Product panel supports time-series modeling without requiring imputation of missing dates. It also contains operational and commercial variables that allow the project to go beyond pure univariate forecasting into demand drivers, stockout analysis, and inventory decision support.
+
+The selection is based on validated dataset properties rather than row count alone.
 
 ---
 
@@ -676,19 +805,25 @@ The structure may be changed if implementation requirements justify it.
 ## 22. Development Roadmap
 
 ### Phase 0 — Project Setup
-- [ ] Create repository
-- [ ] Create project structure
-- [ ] Create PROJECT_MASTER.md
-- [ ] Create README.md
-- [ ] Establish Git workflow
+- [x] Create repository
+- [x] Create project structure
+- [x] Create PROJECT_MASTER.md
+- [x] Create README.md
+- [x] Establish Git workflow
 
 ### Phase 1 — Dataset
-- [ ] Research candidate datasets
-- [ ] Compare candidates
-- [ ] Select dataset
-- [ ] Document source and license
-- [ ] Build data dictionary
-- [ ] Record dataset limitations
+- [x] Research candidate datasets
+- [x] Compare/evaluate candidate dataset
+- [x] Select dataset
+- [x] Document source and license
+- [x] Validate dataset grain
+- [x] Validate temporal completeness
+- [x] Validate demand semantics
+- [x] Audit stockout behavior
+- [x] Audit category/store/region consistency
+- [x] Perform initial feature leakage classification
+- [x] Record dataset limitations
+- [ ] Build formal data dictionary
 
 ### Phase 2 — Data Engineering
 - [ ] Inspect raw data
@@ -793,12 +928,13 @@ Weaknesses and assumptions must be documented.
 
 | ID | Assumption | Reason | Status |
 |---|---|---|---|
-| A001 | No dataset selected yet | Dataset determines methodology | Open |
+| A001 | Selected dataset has no explicit supplier lead-time observations | Source dataset does not contain a lead-time field | Confirmed |
 | A002 | MySQL will be the relational database | Existing local environment | Confirmed |
 | A003 | Google Colab will be the primary notebook environment | Reduces local computational burden | Confirmed |
 | A004 | Deep-learning forecasting is out of scope initially | Not required for the target role/project objective | Confirmed |
-
-Dataset-specific assumptions must be added after dataset selection.
+| A005 | Lead time, if required for inventory calculations, must be an explicitly documented assumption/scenario parameter | Lead-time data is unavailable | Open |
+| A006 | Category is treated as a Store × Product contextual attribute rather than a Product master attribute | Product IDs map to multiple categories globally but consistently within Store × Product | Confirmed |
+| A007 | Stockout-associated records are not automatically labeled as true lost sales | Inventory = 0, Units Sold = 0 and Demand > 0 are observed, but Demand semantics are not externally verified | Confirmed |
 
 ---
 
@@ -811,25 +947,21 @@ Dataset-specific assumptions must be added after dataset selection.
 | D003 | Google Colab instead of local Jupyter initially | Available and reduces local workload | 2026-09-25 | Confirmed |
 | D004 | Avoid LSTM initially | Adds complexity without being necessary for the project objective | 2026-09-25 | Confirmed |
 | D005 | Power BI is the primary business visualization layer | Demonstrates business-facing analytics | 2026-09-25 | Confirmed |
+| D006 | Select Retail Store Inventory and Demand Forecasting as the project dataset | Passed structural, temporal, semantic, inventory, and initial leakage audits | 2026-09-25 | Confirmed |
+| D007 | Use Date × Store ID × Product ID as the analytical grain | Dataset contains exactly one record for each combination with complete temporal coverage | 2026-09-25 | Confirmed |
+| D008 | Treat Category as Store × Product context | Product IDs are not globally category-unique | 2026-09-25 | Confirmed |
+| D009 | Do not treat lead time as observed data | No lead-time field exists in the source dataset | 2026-09-25 | Confirmed |
 
 ---
 
 ## 26. Known Limitations
 
-Current limitations cannot be finalized until the dataset is selected.
-
-Potential limitations may include:
-
-- missing inventory data
-- missing lead-time data
-- insufficient historical depth
-- missing promotions
-- irregular time intervals
-- limited causal variables
-- inability to calculate true financial impact
-- assumptions required for service-level calculations
-
-Limitations must be updated based on actual evidence.
+1. **No explicit lead-time data:** Inventory optimization will require a documented assumption or scenario parameter for lead time.
+2. **Category is not Product-unique:** Category varies by Store × Product context.
+3. **Demand semantics require caution:** Demand differs substantially from Units Sold, but the source does not provide an external definition proving Demand equals true unconstrained customer demand.
+4. **Potential feature leakage:** Several operational/contextual fields may only be available after the forecast origin. Feature eligibility must be defined against the forecast horizon.
+5. **Synthetic/curated-data realism must be treated carefully:** Results should be presented as analytical findings on the selected dataset, not as measured outcomes for a real company.
+6. **No causal interpretation by default:** Correlation between demand and input variables will not automatically be treated as causal impact.
 
 ---
 
@@ -901,9 +1033,25 @@ The final project should prepare the candidate to answer:
 
 ## 29. Completed Work
 
-Nothing substantive completed yet.
+### Phase 0
+- Repository created.
+- Project structure established.
+- PROJECT_MASTER.md established.
+- README.md established.
+- Git workflow established.
 
-This section must be updated as the project progresses.
+### Phase 1
+- Dataset researched and selected.
+- Kaggle source and license recorded.
+- 76,000-row source dataset validated.
+- Analytical grain validated as Date × Store × Product.
+- Complete 760-day Store × Product panel validated.
+- Missing values and duplicate records validated.
+- Demand versus Units Sold semantics audited.
+- Stockout-associated observations audited.
+- Product/category/store/region consistency audited.
+- Initial forecasting feature leakage classification completed.
+- Dataset limitations documented.
 
 ---
 
@@ -911,41 +1059,15 @@ This section must be updated as the project progresses.
 
 ### Immediate Next Step
 
-**Research and select the dataset.**
+**Begin Phase 2 — Data Engineering.**
 
-No modeling should begin before dataset selection and inspection.
+First deliverables:
 
----
+1. Build the formal data dictionary.
+2. Design the MySQL relational schema from the validated analytical grain.
+3. Create the schema SQL.
+4. Create production-quality SQL data-quality checks.
+5. Load and validate the dataset in MySQL.
+6. Then begin the real SQL analytics layer.
 
-## 31. Change Log
-
-| Date | Change |
-|---|---|
-| 2026-09-25 | Initial project master created |
-| 2026-09-25 | Project scope, methodology, tooling, architecture, roadmap and quality standards established |
-
----
-
-## 32. Source of Truth Rule
-
-When future implementation decisions conflict with this document:
-
-1. Identify the conflict.
-2. Explain the trade-off.
-3. Update PROJECT_MASTER.md if the decision changes.
-4. Record the decision in the Decisions Log.
-5. Update the Change Log.
-
-The project should not silently drift from its documented methodology.
-
----
-
-## 33. Current Project Status
-
-**Status:** Planning / Dataset Selection
-
-**Current Phase:** Phase 1 — Dataset
-
-**Next Deliverable:** Dataset comparison and final dataset selection
-
-**Do Not Start Yet:** Forecasting, inventory optimization, or dashboard development before the dataset has been validated.
+**Do not start forecasting, inventory optimization, or Power BI yet.**
