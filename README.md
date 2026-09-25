@@ -4,9 +4,9 @@ An end-to-end analytics project for demand forecasting, inventory-risk analysis,
 
 ## Current Status
 
-**Phase:** 4 — EDA ✅ Complete  
-**Phase 3:** ✅ Complete  
-**Phase 5:** Ready to begin  
+**Phase:** 5 — Demand Forecasting ✅ Complete  
+**Phase 4:** ✅ Complete  
+**Phase 6:** Ready to begin  
 **Status:** Active Development  
 **Dataset:** Retail Store Inventory and Demand Forecasting — selected and validated
 
@@ -19,7 +19,7 @@ The selected dataset contains 76,000 records covering 760 consecutive days, 5 st
 - Phase 2 — Data Engineering ✅
 - Phase 3 — SQL Analytics ✅
 - Phase 4 — EDA ✅
-- Phase 5 — Forecasting ⏳
+- Phase 5 — Forecasting ✅
 - Phase 6 — Inventory Optimization ⏳
 - Phase 7 — Power BI ⏳
 - Phase 8 — Documentation ⏳
@@ -55,101 +55,111 @@ Forecasting target:
 
 Demand is deliberately not substituted with Units Sold. The project treats Demand as the primary target while preserving the observed distinction between Demand and Units Sold.
 
-## MySQL Data Model
-
-Implemented relational layer:
-
-- `stg_sales_raw`
-- `dim_calendar`
-- `dim_store`
-- `dim_product`
-- `fact_demand`
-
-The fact table uses `(date_key, store_id, product_id)` as its primary key.
-
-Category remains contextual at the fact/Store × Product level because Product ID is not globally mapped to one category.
-
 ## Phase 3 — SQL Analytics Completed
 
-The SQL analytics layer has been completed and validated. It covered:
-
-- overall demand and inventory metrics
-- demand by store
-- demand by product
-- demand by category
-- monthly demand
-- seasonality
-- promotion vs demand
-- potential inventory pressure
-- Store × Product pressure
-- demand concentration
-- daily demand peaks
-- inventory-to-demand ratio
-- year-over-year monthly demand
-- Store × Product demand volatility
-- volatility vs inventory pressure
-- promotion × category analysis
-- Units Ordered vs Demand
-- Product × Category ranking using CTE/window logic
-- final analytical view
+The SQL analytics layer has been completed and validated.
 
 Final analytical view:
 
 `vw_demand_analysis`
 
-The final view was validated at:
-
-- 76,000 rows
-- 760 unique dates
-- 5 unique stores
-- 20 unique products
-
 ## Phase 4 — EDA Completed
 
-Phase 4 was completed through EDA 4.15.
+Phase 4 established the forecasting-readiness of the dataset and documented demand, seasonality, store/product differences, promotion association, pricing relationships, volatility, and retained upper-tail observations.
 
-Key findings:
+## Phase 5 — Demand Forecasting Completed
 
-- Demand is positive with a range of 4–430 and mean of 104.32.
-- Long-run linear trend is weak; the fitted trend is slightly negative.
-- Month/season variation is meaningful; summer showed the highest seasonal average in the completed EDA.
-- Store demand is relatively balanced, while Store × Product demand levels and volatility differ materially.
-- Groceries contribute approximately 46.39% of total demand.
-- Promotion is associated with higher observed demand; this is descriptive, not causal.
-- Discount has a positive association with Demand, while Price and Competitor Pricing have weak simple linear relationships with Demand.
-- Price and Competitor Pricing are highly correlated and require multicollinearity consideration.
-- IQR screening identified approximately 986 upper-tail demand observations; they were retained because statistical outlier status is not proof of data error.
-- The dataset passed forecasting-readiness checks with complete daily histories for all 100 Store × Product series.
+Phase 5 uses a leakage-controlled chronological forecasting workflow at the locked Date × Store ID × Product ID grain.
 
-### Forecasting Safeguards
+### Chronological evaluation
 
-Potential leakage or forecast-time availability concerns remain for:
+- Training: 2022-01-01 → 2023-11-30
+- Validation: 2023-12-01 → 2023-12-31
+- Final test: 2024-01-01 → 2024-01-30
+- Primary horizon: 30 days
+- 100 Store × Product series
 
-- Inventory Level
-- Units Sold
-- Units Ordered
-- Weather Condition
-- Competitor Pricing
-- other variables whose values may not be known at the forecast origin
+### Models evaluated
 
-Forecasting will use chronological evaluation. Demand at the prediction timestamp must never be used as a predictor for that same timestamp.
+- Naive
+- Seasonal Naive (7-day)
+- ARIMA(1,0,1)
+- Random Forest
+- Tuned Random Forest
+- HistGradientBoosting
 
-## Phase 5 — Forecasting
+All candidate models use the same December 2023 validation period. ML multi-step forecasts are recursive so future actual Demand does not enter future lag or rolling features.
 
-Planned sequence:
+### Validation results
 
-1. Define forecast horizon and prediction cutoff
-2. Create chronological train/validation/test sets
-3. Establish Naive baseline
-4. Establish Moving Average baseline
-5. Evaluate baseline errors
-6. Engineer lag and rolling features
-7. Validate feature timing and leakage
-8. Evaluate statistical forecasting methods where appropriate
-9. Evaluate XGBoost where appropriate
-10. Compare models using time-aware evaluation
-11. Analyze errors by Store × Product
-12. Select the simplest defensible approach
+| Model | MAE | RMSE | sMAPE |
+|---|---:|---:|---:|
+| Naive | 41.99 | 53.04 | 43.11% |
+| Seasonal Naive 7 | 45.42 | 57.54 | 45.47% |
+| ARIMA(1,0,1) | 34.78 | 43.77 | 35.42% |
+| Random Forest | 35.13 | 43.89 | 35.56% |
+| HistGradientBoosting | 34.75 | 43.53 | 35.29% |
+| TunedRF_300_depth12_leaf1 | 34.73 | 43.49 | 35.28% |
+
+### Validation-based model selection
+
+Selection was performed per Store × Product series using validation MAE, with RMSE and sMAPE used as tie-breakers where needed.
+
+- ARIMA(1,0,1): 35 series
+- HistGradientBoosting: 23 series
+- TunedRF_300_depth12_leaf1: 16 series
+- Random Forest: 15 series
+- Naive: 9 series
+- SeasonalNaive7: 2 series
+
+### Final January 2024 test
+
+The January actual Demand values were joined only after forecasts were generated and model decisions were frozen.
+
+- MAE: 35.40
+- RMSE: 45.98
+- sMAPE: 41.20%
+
+### Forecast integrity
+
+Final output contains:
+
+- 3,000 forecast rows
+- 100 Store × Product series
+- 30 forecast dates
+- no duplicate forecast keys
+- no missing forecasts
+- all forecasts finite
+- complete 2024-01-01 → 2024-01-30 horizon
+
+### Known limitation
+
+The final test error analysis shows substantial underprediction of high-demand observations:
+
+- High-demand threshold: 125
+- Actual high-demand mean: 158.04
+- Forecast high-demand mean: 106.72
+- Mean bias: -51.32
+- Actual maximum: 284
+- Forecast maximum: 146
+
+No genuine demand spikes were removed to improve performance. This limitation must be considered in downstream inventory-risk analysis.
+
+### Leakage controls
+
+The main ML forecasting workflow excludes Units Sold, Inventory Level, and Units Ordered because they are leakage-prone or may not be available at forecast generation time. Future actual Demand is never used as a predictor. Conditional variables are only candidates when forecast-time availability is defensible.
+
+### Phase 5 Output
+
+- Notebook: `notebooks/05_demand_forecasting.ipynb`
+- Forecast output: `data/processed/final_demand_forecasts.csv`
+- Results documentation: `PHASE_5_RESULTS.md`
+
+## Phase 6 — Inventory Optimization
+
+The frozen Phase 5 forecasts are now the demand-input layer for inventory optimization.
+
+Lead time is not present in the source data and will not be fabricated. Any lead time used in Phase 6 must be stated explicitly as a scenario assumption.
 
 ## Repository Structure
 
@@ -168,4 +178,4 @@ supply-chain-demand-forecasting/
 └── assets/
 ```
 
-See `PROJECT_MASTER.md` for the detailed methodology, assumptions, decisions, limitations, and project roadmap.
+See `PROJECT_MASTER.md` and `PHASE_5_RESULTS.md` for methodology, assumptions, decisions, limitations, and forecasting results.
