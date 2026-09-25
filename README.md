@@ -1,67 +1,150 @@
 # Supply Chain Demand Forecasting & Inventory Optimization
 
-An end-to-end analytics project for demand forecasting, inventory-risk analysis, replenishment decision support, SQL analytics, and Power BI reporting.
+An end-to-end analytics project for demand forecasting, inventory-risk analysis, replenishment decision support, SQL analytics, EDA, and Power BI reporting.
 
 ## Current Status
 
-**Phase:** 2 — Data Engineering  
+**Phase:** 4 — EDA  
+**Phase 3:** ✅ Complete  
 **Status:** Active Development  
-**Dataset:** Retail Store Inventory and Demand Forecasting — SELECTED & VALIDATED
+**Dataset:** Retail Store Inventory and Demand Forecasting — selected and validated
 
 The selected dataset contains 76,000 records covering 760 consecutive days, 5 stores, and 20 products at the Date × Store ID × Product ID grain.
 
-Structural and semantic audits have been completed before modeling.
+### Completed Milestones
+
+- Phase 0 — Project Setup ✅
+- Phase 1 — Dataset Validation ✅
+- Phase 2 — Data Engineering ✅
+- Phase 3 — SQL Analytics ✅
+- Phase 4 — EDA 🔵 Current
+- Phase 5 — Forecasting ⏳
+- Phase 6 — Inventory Optimization ⏳
+- Phase 7 — Power BI ⏳
+- Phase 8 — Documentation ⏳
+- Phase 9 — Final Audit ⏳
 
 ## Dataset Validation
 
 - 76,000 rows
 - 16 original columns
 - 2022-01-01 → 2024-01-30
+- 760 consecutive daily dates
 - 5 stores
 - 20 products
 - 100 Store × Product combinations
 - 760 observations per Store × Product combination
+- 0 missing values
 - 0 duplicate grain records
 - 0 missing global dates
 - 0 internal Store × Product date gaps
-- 0 missing values
-- 0 duplicate rows
-- Demand selected as the forecasting target
-- Inventory Level, Units Sold, and Units Ordered available for inventory analysis
-- No explicit lead-time field; lead time will require a documented assumption/scenario if needed
+- complete balanced temporal panel
 
-## Important Data Semantics
+## Analytical Grain
 
-Product ID is not globally mapped to a single Category. Category is consistent within each Store × Product combination, so Category will be treated as contextual rather than as a Product master attribute.
+**One row = one Product × Store × Date**
 
-Demand differs materially from Units Sold; the project will investigate demand semantics without automatically treating Demand as proven real-world unconstrained demand.
+Natural key:
 
-Records with Inventory Level = 0, Units Sold = 0, and Demand > 0 are treated as stockout-associated observations pending further analytical validation.
+`Date + Store ID + Product ID`
 
-## Analytical Flow
+Forecasting target:
 
-Business Problem → Data → SQL → EDA → Forecasting → Evaluation → Inventory Analytics → Decision → Visualization
+**Demand**
 
-## Planned Stack
+Demand is deliberately not substituted with Units Sold. The project treats Demand as the primary target while preserving the observed distinction between Demand and Units Sold.
 
-- Python
-- Pandas / NumPy
-- Scikit-learn
-- Statsmodels
-- XGBoost
-- MySQL
-- Google Colab
-- Power BI / DAX
-- Git / GitHub
+## MySQL Data Model
 
-## Repository Guide
+Implemented relational layer:
 
-See PROJECT_MASTER.md for the complete scope, methodology, architecture, roadmap, assumptions, decisions, quality standards, and current status.
+- `stg_sales_raw`
+- `dim_calendar`
+- `dim_store`
+- `dim_product`
+- `fact_demand`
 
-## Data Policy
+The fact table uses `(date_key, store_id, product_id)` as its primary key.
 
-Raw datasets will not be committed until a dataset has been selected and licensing/usage terms have been checked. Results and business-impact claims will only be added when supported by actual analysis.
+Category remains contextual at the fact/Store × Product level because Product ID is not globally mapped to one category.
 
-## Next Step
+## Phase 3 — SQL Analytics Completed
 
-Build the formal data dictionary and MySQL relational schema, then load and validate the dataset in MySQL before starting forecasting or dashboard development.
+The SQL analytics layer has been completed and validated. It covered:
+
+- overall demand and inventory metrics
+- demand by store
+- demand by product
+- demand by category
+- monthly demand
+- seasonality
+- promotion vs demand
+- potential inventory pressure
+- Store × Product pressure
+- demand concentration
+- daily demand peaks
+- inventory-to-demand ratio
+- year-over-year monthly demand
+- Store × Product demand volatility
+- volatility vs inventory pressure
+- promotion × category analysis
+- Units Ordered vs Demand
+- Product × Category ranking using CTE/window logic
+- final analytical view
+
+Final analytical view:
+
+`vw_demand_analysis`
+
+The final view was validated at:
+
+- 76,000 rows
+- 760 unique dates
+- 5 unique stores
+- 20 unique products
+
+### Important Analytical Safeguards
+
+`inventory_level < demand` is treated as **potential inventory pressure**, not confirmed stockout.
+
+Observed relationships such as higher average demand during promotion periods are descriptive associations and are not interpreted as causal effects.
+
+Units Ordered below Demand does not by itself establish ordering failure because supplier timing and lead-time semantics are not observed.
+
+Potential forecasting leakage remains under review for operational variables such as Inventory Level, Units Sold, Units Ordered, Weather Condition, and other features whose availability depends on the forecast origin.
+
+## Phase 4 — EDA
+
+Current objective:
+
+- demand distribution
+- demand over time
+- trend and seasonality
+- store/product/category patterns
+- promotion relationships
+- inventory vs demand
+- demand variability
+- correlation structure
+- anomaly investigation
+- forecasting readiness
+
+EDA will be question-driven rather than chart-driven. No destructive outlier removal or unsupported assumptions will be introduced.
+
+## Repository Structure
+
+```text
+supply-chain-demand-forecasting/
+├── README.md
+├── PROJECT_MASTER.md
+├── requirements.txt
+├── .gitignore
+├── data/
+├── sql/
+├── notebooks/
+├── src/
+├── dashboard/
+├── reports/
+└── assets/
+```
+
+See `PROJECT_MASTER.md` for the detailed methodology, assumptions, decisions, limitations, and project roadmap.
