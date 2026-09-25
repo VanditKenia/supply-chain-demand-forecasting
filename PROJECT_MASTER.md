@@ -823,30 +823,51 @@ The structure may be changed if implementation requirements justify it.
 - [x] Audit category/store/region consistency
 - [x] Perform initial feature leakage classification
 - [x] Record dataset limitations
-- [ ] Build formal data dictionary
+- [x] Build formal data dictionary
 
 ### Phase 2 — Data Engineering
-- [ ] Inspect raw data
-- [ ] Perform quality checks
-- [ ] Clean data
-- [ ] Design MySQL schema
-- [ ] Load data into MySQL
-- [ ] Validate database contents
+- [x] Inspect raw data
+- [x] Perform quality checks
+- [x] Clean data
+- [x] Design MySQL schema
+- [x] Load data into MySQL
+- [x] Validate database contents
 
 ### Phase 3 — SQL Analytics
-- [ ] Core business queries
-- [ ] Time-based analysis
-- [ ] Product analysis
-- [ ] Demand metrics
-- [ ] Inventory metrics where available
+- [x] Core business queries
+- [x] Time-based analysis
+- [x] Product analysis
+- [x] Demand metrics
+- [x] Inventory metrics where available
+- [x] Final analytical view created and validated
+
+### Phase 3 Validation Checkpoint
+
+- MySQL analytical layer completed and reconciled with the source grain.
+- Final analytical view: `vw_demand_analysis`.
+- View validation: 76,000 rows, 760 dates, 5 stores, 20 products.
+- Completed descriptive analyses include store/product/category demand, monthly demand, seasonality, promotion association, potential inventory pressure, Store × Product pressure, demand concentration, volatility, inventory-to-demand ratio, YoY comparisons, and ordering-vs-demand diagnostics.
+- `inventory_level < demand` is treated as a potential inventory-pressure indicator, not a confirmed stockout.
+- Descriptive relationships are not interpreted as causal effects without supporting design or evidence.
+
+### Phase 3 Status
+
+**COMPLETE — Phase 4 EDA is the next active phase.**
 
 ### Phase 4 — EDA
+- [ ] Analytical-view sanity check
 - [ ] Demand distribution
 - [ ] Trend analysis
 - [ ] Seasonality analysis
+- [ ] Store analysis
 - [ ] Product analysis
+- [ ] Category analysis
+- [ ] Promotion analysis
+- [ ] Inventory vs Demand
 - [ ] Volatility analysis
+- [ ] Correlation analysis
 - [ ] Anomaly analysis
+- [ ] Forecasting readiness
 
 ### Phase 5 — Forecasting
 - [ ] Create baseline
