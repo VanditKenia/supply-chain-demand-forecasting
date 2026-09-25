@@ -4,8 +4,9 @@ An end-to-end analytics project for demand forecasting, inventory-risk analysis,
 
 ## Current Status
 
-**Phase:** 4 — EDA  
+**Phase:** 4 — EDA ✅ Complete  
 **Phase 3:** ✅ Complete  
+**Phase 5:** Ready to begin  
 **Status:** Active Development  
 **Dataset:** Retail Store Inventory and Demand Forecasting — selected and validated
 
@@ -17,7 +18,7 @@ The selected dataset contains 76,000 records covering 760 consecutive days, 5 st
 - Phase 1 — Dataset Validation ✅
 - Phase 2 — Data Engineering ✅
 - Phase 3 — SQL Analytics ✅
-- Phase 4 — EDA 🔵 Current
+- Phase 4 — EDA ✅
 - Phase 5 — Forecasting ⏳
 - Phase 6 — Inventory Optimization ⏳
 - Phase 7 — Power BI ⏳
@@ -103,32 +104,52 @@ The final view was validated at:
 - 5 unique stores
 - 20 unique products
 
-### Important Analytical Safeguards
+## Phase 4 — EDA Completed
 
-`inventory_level < demand` is treated as **potential inventory pressure**, not confirmed stockout.
+Phase 4 was completed through EDA 4.15.
 
-Observed relationships such as higher average demand during promotion periods are descriptive associations and are not interpreted as causal effects.
+Key findings:
 
-Units Ordered below Demand does not by itself establish ordering failure because supplier timing and lead-time semantics are not observed.
+- Demand is positive with a range of 4–430 and mean of 104.32.
+- Long-run linear trend is weak; the fitted trend is slightly negative.
+- Month/season variation is meaningful; summer showed the highest seasonal average in the completed EDA.
+- Store demand is relatively balanced, while Store × Product demand levels and volatility differ materially.
+- Groceries contribute approximately 46.39% of total demand.
+- Promotion is associated with higher observed demand; this is descriptive, not causal.
+- Discount has a positive association with Demand, while Price and Competitor Pricing have weak simple linear relationships with Demand.
+- Price and Competitor Pricing are highly correlated and require multicollinearity consideration.
+- IQR screening identified approximately 986 upper-tail demand observations; they were retained because statistical outlier status is not proof of data error.
+- The dataset passed forecasting-readiness checks with complete daily histories for all 100 Store × Product series.
 
-Potential forecasting leakage remains under review for operational variables such as Inventory Level, Units Sold, Units Ordered, Weather Condition, and other features whose availability depends on the forecast origin.
+### Forecasting Safeguards
 
-## Phase 4 — EDA
+Potential leakage or forecast-time availability concerns remain for:
 
-Current objective:
+- Inventory Level
+- Units Sold
+- Units Ordered
+- Weather Condition
+- Competitor Pricing
+- other variables whose values may not be known at the forecast origin
 
-- demand distribution
-- demand over time
-- trend and seasonality
-- store/product/category patterns
-- promotion relationships
-- inventory vs demand
-- demand variability
-- correlation structure
-- anomaly investigation
-- forecasting readiness
+Forecasting will use chronological evaluation. Demand at the prediction timestamp must never be used as a predictor for that same timestamp.
 
-EDA will be question-driven rather than chart-driven. No destructive outlier removal or unsupported assumptions will be introduced.
+## Phase 5 — Forecasting
+
+Planned sequence:
+
+1. Define forecast horizon and prediction cutoff
+2. Create chronological train/validation/test sets
+3. Establish Naive baseline
+4. Establish Moving Average baseline
+5. Evaluate baseline errors
+6. Engineer lag and rolling features
+7. Validate feature timing and leakage
+8. Evaluate statistical forecasting methods where appropriate
+9. Evaluate XGBoost where appropriate
+10. Compare models using time-aware evaluation
+11. Analyze errors by Store × Product
+12. Select the simplest defensible approach
 
 ## Repository Structure
 
