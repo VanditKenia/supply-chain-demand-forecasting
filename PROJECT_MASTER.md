@@ -68,3 +68,53 @@ Update:
 ### Immediate Next Step
 
 Phase 6 — Inventory Optimization using the frozen Phase 5 forecasts.
+
+
+## Phase 7 — Supply Chain Intelligence Platform
+
+Phase 7 expands the presentation-oriented BI layer into an application-style decision-support platform.
+
+### Platform stack
+
+- Next.js + React + TypeScript
+- Tailwind CSS
+- Framer Motion
+- Apache ECharts
+- Three.js / React Three Fiber
+- FastAPI
+- MySQL
+- Docker Compose
+- Power BI + DAX as the BI/analytical workspace
+
+### Product experience
+
+The platform is organized around:
+
+1. Control Tower
+2. Demand Intelligence
+3. Inventory Intelligence
+4. Action Center
+5. Store Explorer
+6. Product Explorer
+7. Power BI Analytics
+
+The frontend must use the real Phase 5 and Phase 6 analytical outputs. It must not fabricate real-time data, AI-generated insights, savings, ROI, or operational impact.
+
+### Phase 7 status
+
+- [x] Platform architecture defined
+- [x] Frontend foundation committed
+- [x] FastAPI foundation committed
+- [x] MySQL schema committed
+- [x] Docker Compose foundation committed
+- [x] Design system committed
+- [ ] Synchronize validated Phase 5/6 artifacts into repository
+- [ ] Implement API data services
+- [ ] Implement Control Tower
+- [ ] Implement Demand Intelligence
+- [ ] Implement Inventory Intelligence
+- [ ] Implement Action Center
+- [ ] Implement Store/Product explorers
+- [ ] Implement meaningful 3D/network visualization
+- [ ] Integrate Power BI analytical workspace
+- [ ] QA and deployment
