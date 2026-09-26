@@ -10,15 +10,16 @@ env/
 .ipynb_checkpoints/
 
 # Data / generated outputs
-*.csv
 *.xlsx
 *.parquet
 *.pkl
 *.joblib
-/data/raw/*
-/data/processed/*
-!/data/processed/README.md
-!/data/processed/ARTIFACT_MANIFEST.md
+!data/raw/sales_data.csv
+!data/processed/final_demand_forecasts.csv
+!data/processed/inventory_recommendations.csv
+!data/processed/ARTIFACT_MANIFEST.md
+!data/processed/README.md
+!data/README.md
 
 # Node / Next.js
 node_modules/
@@ -35,11 +36,16 @@ pnpm-debug.log*
 .env.*
 !.env.example
 
-# OS / IDE
+# OS / IDE / Agent metadata
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
+.gemini/
+.agent/
+.agents/
+.gsd/
 
 # Power BI temporary files
 *.pbit.lock
+
