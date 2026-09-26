@@ -1,5 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+
+from .data_service import actions, overview
 
 app = FastAPI(
     title="Supply Chain Intelligence API",
@@ -26,3 +28,17 @@ def api_root():
         "version": "0.1.0",
         "status": "foundation",
     }
+
+@app.get("/api/overview")
+def get_overview():
+    try:
+        return overview()
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+@app.get("/api/actions")
+def get_actions(risk: str | None = None):
+    try:
+        return actions(risk)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
