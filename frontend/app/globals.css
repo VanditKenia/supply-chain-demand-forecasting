@@ -717,18 +717,24 @@ nav {
 
 .table-container {
   overflow-x: auto;
+  max-height: 600px;
   border: 1px solid var(--line);
+  position: relative;
 }
 
 .ops-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   text-align: left;
   font-size: 12px;
 }
 
 .ops-table th {
-  background: var(--surface-alt);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #ede8df;
   color: var(--muted);
   font: 10px "DM Mono", monospace;
   letter-spacing: 0.05em;
@@ -751,15 +757,16 @@ nav {
   padding: 10px 12px;
   border-bottom: 1px solid var(--line-light);
   color: var(--ink);
+  background: var(--surface);
 }
 
 .ops-table tr.clickable-row {
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: all 0.15s ease;
 }
 
-.ops-table tr.clickable-row:hover {
-  background: #ede7dc;
+.ops-table tr.clickable-row:hover td {
+  background: #ebe4d8;
 }
 
 .mono-cell {

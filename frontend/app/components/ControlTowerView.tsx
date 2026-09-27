@@ -36,15 +36,24 @@ export const ControlTowerView: React.FC<ControlTowerViewProps> = ({
   const totalDemand = overview?.total_forecast_demand ?? 278398.48;
   const decisionUnits = overview?.decision_units ?? 100;
   const highRiskUnits = overview?.high_risk_units ?? 95;
+  const mediumRiskUnits = overview?.medium_risk_units ?? 2;
+  const lowRiskUnits = overview?.low_risk_units ?? 3;
   const recOrder = overview?.recommended_order_units ?? 52083.0;
   const storesCount = overview?.stores ?? 5;
   const productsCount = overview?.products ?? 20;
   const currInv = overview?.total_current_inventory ?? 29049;
-  const safetyStock = overview?.total_safety_stock ?? 18669.1;
+  const safetyStock = overview?.total_safety_stock ?? 18669.09;
 
   // 30-Day Forecast Trend Chart Options
   const trendDates = trendData?.trend.map((t) => t.date) || [];
   const trendValues = trendData?.trend.map((t) => t.forecast_demand) || [];
+
+  // Exact demand trend context metrics (Min / Avg / Max daily forecast across 30-day network)
+  const minDailyForecast = trendValues.length > 0 ? Math.min(...trendValues) : 8608.14;
+  const maxDailyForecast = trendValues.length > 0 ? Math.max(...trendValues) : 9626.97;
+  const avgDailyForecast = trendValues.length > 0
+    ? trendValues.reduce((a, b) => a + b, 0) / trendValues.length
+    : (overview?.average_daily_demand ?? 9279.95);
 
   const trendChartOptions: EChartsOption = {
     tooltip: {
@@ -54,10 +63,15 @@ export const ControlTowerView: React.FC<ControlTowerViewProps> = ({
       textStyle: { color: "#eee9df", fontFamily: "DM Mono", fontSize: 11 },
       formatter: (params: any) => {
         const p = Array.isArray(params) ? params[0] : params;
-        return `<div style="font-family: 'DM Mono', monospace; font-size: 11px;">
-          <div><strong>Date:</strong> ${p.name}</div>
-          <div style="color: #c75b32;"><strong>Total Forecast:</strong> ${Number(p.value).toLocaleString()} units</div>
-          <div style="color: #716e66;">100 Store × Product Series</div>
+        const val = Number(p.value);
+        return `<div style="font-family: 'DM Mono', monospace; font-size: 11px; line-height: 1.5;">
+          <div style="font-weight: 700; color: #eee9df; margin-bottom: 4px;">Date: ${p.name}</div>
+          <div style="color: #c75b32;"><strong>Daily Forecast:</strong> ${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} units</div>
+          <div style="color: #918f88; margin-top: 4px; border-top: 1px dashed #302f2a; padding-top: 4px;">
+            <span>30-Day Network Context:</span><br/>
+            <span>Min: ${minDailyForecast.toLocaleString(undefined, { maximumFractionDigits: 0 })} · Avg: ${avgDailyForecast.toLocaleString(undefined, { maximumFractionDigits: 0 })} · Max: ${maxDailyForecast.toLocaleString(undefined, { maximumFractionDigits: 0 })} units/day</span>
+          </div>
+          <div style="color: #716e66; font-size: 10px;">Aggregated across 100 Store × Product Series</div>
         </div>`;
       },
     },
@@ -170,8 +184,11 @@ export const ControlTowerView: React.FC<ControlTowerViewProps> = ({
     ],
   };
 
-  // Replenishment Ranking Top Bar Chart
-  const ranking = riskData?.replenishment_ranking?.slice(0, 7) || [];
+  // Replenishment Ranking Top Bar Chart - ensure strictly sorted by Recommended Order Quantity descending
+  const rankingRaw = riskData?.replenishment_ranking
+    ? [...riskData.replenishment_ranking].sort((a, b) => b.recommended_order - a.recommended_order)
+    : [];
+  const ranking = rankingRaw.slice(0, 7);
   const rankingNames = ranking.map((r) => `${r.store_id} · ${r.product_id}`).reverse();
   const rankingValues = ranking.map((r) => r.recommended_order).reverse();
 
@@ -184,7 +201,7 @@ export const ControlTowerView: React.FC<ControlTowerViewProps> = ({
       textStyle: { color: "#eee9df", fontFamily: "DM Mono", fontSize: 11 },
       formatter: (p: any) => {
         const item = Array.isArray(p) ? p[0] : p;
-        return `<strong>${item.name}</strong><br/>Recommended Order: <span style="color: #c75b32;">${item.value} units</span>`;
+        return `<strong>${item.name}</strong><br/>Recommended Order Quantity: <span style="color: #c75b32;">${item.value.toLocaleString()} units</span>`;
       },
     },
     grid: { left: 95, right: 30, top: 15, bottom: 20 },
@@ -202,7 +219,7 @@ export const ControlTowerView: React.FC<ControlTowerViewProps> = ({
     },
     series: [
       {
-        name: "Recommended Order",
+        name: "Recommended Order Quantity",
         type: "bar",
         data: rankingValues,
         itemStyle: { color: "#c75b32", borderRadius: [0, 3, 3, 0] },
@@ -230,7 +247,7 @@ export const ControlTowerView: React.FC<ControlTowerViewProps> = ({
         </div>
         <div className="header-badge-group">
           <span className="live-status-pill">
-            <span className="status-dot" /> LIVE TELEMETRY
+            <span className="status-dot" /> DATA STATUS
           </span>
           <button onClick={() => onNavigate("04")} className="action-pill-btn">
             ACTION QUEUE ({priorityActions.length}) →
@@ -317,11 +334,11 @@ export const ControlTowerView: React.FC<ControlTowerViewProps> = ({
               <span className="stat-label">High Risk</span>
             </div>
             <div className="risk-metric-stat">
-              <span className="stat-num text-warning">{overview?.medium_risk_units ?? 2}</span>
+              <span className="stat-num text-warning">{mediumRiskUnits}</span>
               <span className="stat-label">Medium</span>
             </div>
             <div className="risk-metric-stat">
-              <span className="stat-num text-success">{overview?.low_risk_units ?? 3}</span>
+              <span className="stat-num text-success">{lowRiskUnits}</span>
               <span className="stat-label">Low</span>
             </div>
           </div>
@@ -379,11 +396,11 @@ export const ControlTowerView: React.FC<ControlTowerViewProps> = ({
                   <th>Store</th>
                   <th>Product</th>
                   <th>Risk</th>
-                  <th>Current Inv</th>
+                  <th>Current Inventory</th>
                   <th>Reorder Point</th>
-                  <th>Inv Gap</th>
-                  <th>Recommended Order</th>
-                  <th>Action</th>
+                  <th>Inventory Gap</th>
+                  <th>Recommended Order Quantity</th>
+                  <th>Recommended Action</th>
                   <th>Inspect</th>
                 </tr>
               </thead>

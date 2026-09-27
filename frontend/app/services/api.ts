@@ -76,6 +76,9 @@ export const api = {
       store_id: filters.store_id,
       product_id: filters.product_id,
       model: filters.model,
+      start_date: filters.start_date,
+      end_date: filters.end_date,
+      search: filters.search,
     });
     return fetchJson<ForecastTrendResponse>(`/api/forecasts/trend${qs}`);
   },

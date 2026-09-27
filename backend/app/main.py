@@ -100,12 +100,18 @@ def get_forecast_trend_endpoint(
     store_id: Optional[str] = Query(None, description="Filter by Store ID"),
     product_id: Optional[str] = Query(None, description="Filter by Product ID"),
     model: Optional[str] = Query(None, description="Filter by Selected Model"),
+    start_date: Optional[str] = Query(None, description="Filter starting from Date (YYYY-MM-DD)"),
+    end_date: Optional[str] = Query(None, description="Filter up to Date (YYYY-MM-DD)"),
+    search: Optional[str] = Query(None, description="Search across store, product, model, date"),
 ):
     try:
         return get_forecast_trend(
             store_id=store_id,
             product_id=product_id,
             model=model,
+            start_date=start_date,
+            end_date=end_date,
+            search=search,
         )
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc

@@ -202,31 +202,31 @@ export const DetailDrawer: React.FC<DetailDrawerProps> = ({ item, onClose }) => 
                   <span className="spec-unit">units on hand</span>
                 </div>
                 <div className="spec-item">
-                  <span className="spec-label">Reorder Point (ROP)</span>
+                  <span className="spec-label">Reorder Point</span>
                   <span className="spec-value">{rop.toLocaleString(undefined, { maximumFractionDigits: 1 })}</span>
-                  <span className="spec-unit">LTD + Safety Stock</span>
+                  <span className="spec-unit">Lead-Time Demand + Safety Stock</span>
                 </div>
                 <div className="spec-item">
-                  <span className="spec-label">Recommended Order</span>
+                  <span className="spec-label">Recommended Order Quantity</span>
                   <span className="spec-value highlight-orange">
                     {recOrder.toLocaleString(undefined, { maximumFractionDigits: 1 })}
                   </span>
-                  <span className="spec-unit">max(ROP - Inv, 0)</span>
+                  <span className="spec-unit">ceil(max(ROP - Current Inventory, 0))</span>
                 </div>
                 <div className="spec-item">
                   <span className="spec-label">Inventory Gap</span>
                   <span className="spec-value">{invGap.toLocaleString(undefined, { maximumFractionDigits: 1 })}</span>
-                  <span className="spec-unit">ROP - Current Inv</span>
+                  <span className="spec-unit">Reorder Point - Current Inventory</span>
                 </div>
                 <div className="spec-item">
                   <span className="spec-label">Safety Stock</span>
                   <span className="spec-value">{safetyStock.toLocaleString(undefined, { maximumFractionDigits: 1 })}</span>
-                  <span className="spec-unit">Z × StdDev × √L</span>
+                  <span className="spec-unit">Z × Demand Std Dev × √Lead Time</span>
                 </div>
                 <div className="spec-item">
-                  <span className="spec-label">Lead-Time Demand (7d)</span>
+                  <span className="spec-label">Lead-Time Demand</span>
                   <span className="spec-value">{leadTimeDemand.toLocaleString(undefined, { maximumFractionDigits: 1 })}</span>
-                  <span className="spec-unit">7-day forecast sum</span>
+                  <span className="spec-unit">7-day forecast demand sum</span>
                 </div>
                 <div className="spec-item">
                   <span className="spec-label">Service Level Target</span>

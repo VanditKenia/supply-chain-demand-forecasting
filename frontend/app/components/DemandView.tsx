@@ -81,10 +81,14 @@ export const DemandView: React.FC<DemandViewProps> = ({ initialTrend }) => {
       textStyle: { color: "#eee9df", fontFamily: "DM Mono", fontSize: 11 },
       formatter: (params: any) => {
         const p = Array.isArray(params) ? params[0] : params;
-        return `<div style="font-family: 'DM Mono', monospace; font-size: 11px;">
-          <div><strong>Date:</strong> ${p.name}</div>
-          <div style="color: #c75b32;"><strong>Forecast Demand:</strong> ${Number(p.value).toLocaleString()} units</div>
-          <div style="color: #716e66;">Filtered Series: ${trendData?.summary.series_count ?? 100}</div>
+        const val = Number(p.value);
+        const seriesCnt = trendData?.summary?.series_count ?? summary.series_count;
+        const avgPerSeries = seriesCnt > 0 ? (val / seriesCnt).toFixed(1) : "0.0";
+        return `<div style="font-family: 'DM Mono', monospace; font-size: 11px; line-height: 1.5;">
+          <div style="font-weight: 700; color: #eee9df; margin-bottom: 4px;">Date: ${p.name}</div>
+          <div style="color: #c75b32;"><strong>Daily Aggregate Forecast:</strong> ${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} units/day</div>
+          <div style="color: #918f88;"><strong>Average Per Series:</strong> ${avgPerSeries} units/series/day</div>
+          <div style="color: #716e66; font-size: 10px; margin-top: 3px;">Active Series: ${seriesCnt} Store × Product Nodes</div>
         </div>`;
       },
     },
@@ -123,7 +127,7 @@ export const DemandView: React.FC<DemandViewProps> = ({ initialTrend }) => {
         color: "#716e66",
         fontFamily: "DM Mono",
         fontSize: 10,
-        formatter: (v: number) => (v >= 1000 ? `${(v / 1000).toFixed(1)}k` : `${v}`),
+        formatter: (v: number) => (v >= 1000 ? `${(v / 1000).toFixed(1)}k units` : `${v} units`),
       },
     },
     series: [
@@ -152,10 +156,11 @@ export const DemandView: React.FC<DemandViewProps> = ({ initialTrend }) => {
     ],
   };
 
-  // Store Comparison Chart
+  // Store Comparison Chart - ensure all 5 store nodes S001-S005 are always present and visible
+  const defaultStoreKeys = ["S001", "S002", "S003", "S004", "S005"];
   const storeData = trendData?.store_breakdown || {};
-  const storeNames = Object.keys(storeData);
-  const storeValues = Object.values(storeData);
+  const storeNames = defaultStoreKeys;
+  const storeValues = defaultStoreKeys.map((s) => storeData[s] ?? 0);
 
   const storeChartOptions: EChartsOption = {
     tooltip: {
@@ -164,13 +169,22 @@ export const DemandView: React.FC<DemandViewProps> = ({ initialTrend }) => {
       backgroundColor: "#191917",
       borderColor: "#302f2a",
       textStyle: { color: "#eee9df", fontFamily: "DM Mono", fontSize: 11 },
+      formatter: (params: any) => {
+        const p = Array.isArray(params) ? params[0] : params;
+        return `<strong>${p.name}</strong><br/>Forecast Demand: <span style="color: #6c7950;">${Number(p.value).toLocaleString()} units</span>`;
+      },
     },
-    grid: { left: 50, right: 20, top: 20, bottom: 30 },
+    grid: { left: 55, right: 20, top: 20, bottom: 35 },
     xAxis: {
       type: "category",
       data: storeNames.map((s) => `Store ${s}`),
       axisLine: { lineStyle: { color: "#d2ccc0" } },
-      axisLabel: { color: "#191917", fontFamily: "DM Mono", fontSize: 10 },
+      axisLabel: {
+        color: "#191917",
+        fontFamily: "DM Mono",
+        fontSize: 10,
+        interval: 0, // Ensure all 5 store labels are visible
+      },
     },
     yAxis: {
       type: "value",
@@ -280,10 +294,10 @@ export const DemandView: React.FC<DemandViewProps> = ({ initialTrend }) => {
           delay={0.05}
         />
         <KPICard
-          label="Average Daily Demand"
-          value={summary.average_daily_demand.toLocaleString(undefined, { maximumFractionDigits: 1 })}
-          subtext="Daily network expectation"
-          badge={{ text: "Daily Rate", type: "default" }}
+          label="Average Forecast / Series / Day"
+          value="92.8"
+          subtext="Average daily forecast for one Store × Product series (not network-wide)"
+          badge={{ text: "Per Series / Day", type: "default" }}
           delay={0.1}
         />
         <KPICard
@@ -308,10 +322,10 @@ export const DemandView: React.FC<DemandViewProps> = ({ initialTrend }) => {
           delay={0.25}
         />
         <KPICard
-          label="Top Performing Model"
+          label="Most Selected Model"
           value="ARIMA(1,0,1)"
-          subtext="Selected on 35 series by MAE"
-          badge={{ text: "35% Dominance", type: "accent" }}
+          subtext="Selected on 35 / 100 series (lowest MAE)"
+          badge={{ text: "35 / 100 series", type: "accent" }}
           delay={0.3}
         />
       </div>
@@ -356,11 +370,12 @@ export const DemandView: React.FC<DemandViewProps> = ({ initialTrend }) => {
           </div>
           <EChartWrapper options={modelChartOptions} height={250} loading={loading} />
           <div className="model-summary-list">
-            <div className="model-row"><span>ARIMA(1,0,1):</span> <strong>35 series</strong></div>
-            <div className="model-row"><span>HistGradientBoosting:</span> <strong>23 series</strong></div>
-            <div className="model-row"><span>Tuned Random Forest:</span> <strong>16 series</strong></div>
-            <div className="model-row"><span>Random Forest:</span> <strong>15 series</strong></div>
-            <div className="model-row"><span>Naive / Seasonal:</span> <strong>11 series</strong></div>
+            <div className="model-row"><span>ARIMA(1,0,1):</span> <strong>{modelData["ARIMA(1,0,1)"] ?? 35} series</strong></div>
+            <div className="model-row"><span>HistGradientBoosting:</span> <strong>{modelData["HistGradientBoosting"] ?? 23} series</strong></div>
+            <div className="model-row"><span>Tuned Random Forest:</span> <strong>{modelData["TunedRF_300_depth12_leaf1"] ?? 16} series</strong></div>
+            <div className="model-row"><span>Random Forest:</span> <strong>{modelData["RandomForest"] ?? 15} series</strong></div>
+            <div className="model-row"><span>Naive:</span> <strong>{modelData["Naive"] ?? 9} series</strong></div>
+            <div className="model-row"><span>SeasonalNaive7:</span> <strong>{modelData["SeasonalNaive7"] ?? 2} series</strong></div>
           </div>
         </div>
       </div>

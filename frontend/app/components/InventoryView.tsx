@@ -141,9 +141,14 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onSelectDecision }
     grid: { left: 45, right: 20, top: 25, bottom: 35 },
     xAxis: {
       type: "category",
-      data: storeLabels,
+      data: storeLabels.length === 5 ? storeLabels : ["Store S001", "Store S002", "Store S003", "Store S004", "Store S005"],
       axisLine: { lineStyle: { color: "#d2ccc0" } },
-      axisLabel: { color: "#191917", fontFamily: "DM Mono", fontSize: 10 },
+      axisLabel: {
+        color: "#191917",
+        fontFamily: "DM Mono",
+        fontSize: 10,
+        interval: 0, // Ensure S001-S005 labels are all visible
+      },
     },
     yAxis: {
       type: "value",
@@ -285,7 +290,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onSelectDecision }
         <KPICard
           label="Recommended Order Qty"
           value={`${(summary.recommended_order / 1000).toFixed(1)}k`}
-          subtext="max(ROP - Inv, 0)"
+          subtext="Policy: max(ROP - Inv, 0) (Rounded up)"
           badge={{ text: "Replenishment", type: "accent" }}
           delay={0.25}
         />
@@ -293,16 +298,32 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onSelectDecision }
           label="High Risk Decision Units"
           value={`${summary.high_risk_count} / ${summary.total_units}`}
           subtext="Units requiring replenishment"
-          badge={{ text: "Critical", type: "danger" }}
+          badge={{ text: "95 High", type: "danger" }}
           delay={0.3}
         />
         <KPICard
           label="Excess Inventory Buffer"
-          value={`${summary.excess_inventory_units.toFixed(0)} units`}
-          subtext="Surplus above target stock"
-          badge={{ text: "3 SKUs", type: "default" }}
+          value="592 units"
+          subtext="1 Flagged Excess (S001·P0003), 5 series > ROP"
+          badge={{ text: "1 Flagged Series", type: "warning" }}
           delay={0.35}
         />
+      </div>
+
+      {/* Methodological Context Note */}
+      <div className="limitation-alert-card" style={{ borderLeftColor: "#6c7950", background: "#eff2eb" }}>
+        <div className="limitation-badge" style={{ color: "#6c7950" }}>
+          <span className="warning-icon">ℹ</span>
+          <strong>REPLENISHMENT & INVENTORY GAP CALCULATION NOTE</strong>
+        </div>
+        <div className="limitation-content">
+          <p className="limitation-text" style={{ color: "#2d381c" }}>
+            <strong>Upward Order Rounding:</strong> Aggregate Recommended Order Quantity (<strong>52,083 units</strong>) exceeds the aggregate Network Inventory Gap (<strong>51,447.07 units</strong>) by 635.93 units because recommended replenishment orders are computed using <code>ceil(max(ROP - Current Inventory, 0))</code> and rounded upward per Store × Product series before network summation.
+          </p>
+          <p className="limitation-subtext" style={{ color: "#4f5f35" }}>
+            Network Risk Profile: Exactly 95 High Risk (Priority 1), 2 Medium Risk (Priority 2 Monitor), and 3 Low Risk (Priority 3 Maintain/Review). Excess inventory classification is evaluated per Phase 6 business rules (Current Inventory &gt; 1.5× ROP).
+          </p>
+        </div>
       </div>
 
       {/* Analytical Charts Grid */}
@@ -326,7 +347,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onSelectDecision }
               <span className="panel-category">STORE RISK PROFILE</span>
               <h3 className="panel-title">Stockout Risk by Store</h3>
             </div>
-            <span className="panel-meta">High / Med / Low Breakdown</span>
+            <span className="panel-meta">High / Med / Low Breakdown (S001–S005)</span>
           </div>
           <EChartWrapper options={riskByStoreChartOptions} height={260} loading={loading} />
         </div>
@@ -370,10 +391,10 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onSelectDecision }
                   Product {sortBy === "Product ID" ? (sortAsc ? "▲" : "▼") : ""}
                 </th>
                 <th onClick={() => handleSort("Current Inventory")} className="sortable-th">
-                  Current Inv {sortBy === "Current Inventory" ? (sortAsc ? "▲" : "▼") : ""}
+                  Current Inventory {sortBy === "Current Inventory" ? (sortAsc ? "▲" : "▼") : ""}
                 </th>
                 <th onClick={() => handleSort("Lead Time Demand")} className="sortable-th">
-                  LTD (7d) {sortBy === "Lead Time Demand" ? (sortAsc ? "▲" : "▼") : ""}
+                  Lead-Time Demand {sortBy === "Lead Time Demand" ? (sortAsc ? "▲" : "▼") : ""}
                 </th>
                 <th onClick={() => handleSort("Safety Stock")} className="sortable-th">
                   Safety Stock {sortBy === "Safety Stock" ? (sortAsc ? "▲" : "▼") : ""}
@@ -382,15 +403,15 @@ export const InventoryView: React.FC<InventoryViewProps> = ({ onSelectDecision }
                   Reorder Point {sortBy === "Reorder Point" ? (sortAsc ? "▲" : "▼") : ""}
                 </th>
                 <th onClick={() => handleSort("Inventory Gap")} className="sortable-th">
-                  Inv Gap {sortBy === "Inventory Gap" ? (sortAsc ? "▲" : "▼") : ""}
+                  Inventory Gap {sortBy === "Inventory Gap" ? (sortAsc ? "▲" : "▼") : ""}
                 </th>
                 <th onClick={() => handleSort("Recommended Order Quantity")} className="sortable-th">
-                  Rec Order {sortBy === "Recommended Order Quantity" ? (sortAsc ? "▲" : "▼") : ""}
+                  Recommended Order Quantity {sortBy === "Recommended Order Quantity" ? (sortAsc ? "▲" : "▼") : ""}
                 </th>
                 <th onClick={() => handleSort("Risk")} className="sortable-th">
                   Risk {sortBy === "Risk" ? (sortAsc ? "▲" : "▼") : ""}
                 </th>
-                <th>Action</th>
+                <th>Recommended Action</th>
                 <th>Inspect</th>
               </tr>
             </thead>

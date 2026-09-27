@@ -135,7 +135,7 @@ export default function Home() {
           )}
 
           {activeModule === "05" && (
-            <AnalyticsView />
+            <AnalyticsView overview={overview} riskData={riskData} />
           )}
         </div>
       </section>

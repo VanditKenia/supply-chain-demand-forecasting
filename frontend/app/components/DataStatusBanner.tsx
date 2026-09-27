@@ -36,7 +36,7 @@ export const DataStatusBanner: React.FC<DataStatusBannerProps> = ({
         </span>
         <span className="status-divider">|</span>
         <span className="status-meta">
-          <strong>Snapshot:</strong> {snapshotDate}
+          <strong>Planning Snapshot:</strong> {snapshotDate}
         </span>
         <span className="status-divider">|</span>
         <span className="status-meta">

@@ -230,8 +230,12 @@ def get_forecasts(
     series_count = int(df.groupby(["Store ID", "Product ID"]).ngroups) if total_records > 0 else 0
     unique_dates = int(df["Date"].nunique()) if total_records > 0 else 0
 
-    # Model breakdown in current slice
-    model_breakdown = df["Selected_Model"].value_counts().to_dict() if total_records > 0 else {}
+    # Model breakdown in current slice (count distinct Store x Product series per model)
+    if total_records > 0:
+        series_model_df = df.groupby(["Store ID", "Product ID"])["Selected_Model"].first()
+        model_breakdown = series_model_df.value_counts().to_dict()
+    else:
+        model_breakdown = {}
 
     # Sort
     if sort_by in df.columns:
@@ -267,6 +271,9 @@ def get_forecast_trend(
     store_id: Optional[str] = None,
     product_id: Optional[str] = None,
     model: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    search: Optional[str] = None,
 ) -> Dict[str, Any]:
     df = get_forecasts_df().copy()
 
@@ -276,9 +283,31 @@ def get_forecast_trend(
         df = df[df["Product ID"] == product_id]
     if model:
         df = df[df["Selected_Model"] == model]
+    if start_date:
+        df = df[df["Date"] >= start_date]
+    if end_date:
+        df = df[df["Date"] <= end_date]
+    if search:
+        s = search.strip().lower()
+        df = df[
+            df["Store ID"].str.lower().str.contains(s) |
+            df["Product ID"].str.lower().str.contains(s) |
+            df["Selected_Model"].str.lower().str.contains(s) |
+            df["Date"].str.contains(s)
+        ]
 
     if df.empty:
-        return {"dates": [], "series": [], "summary": {}}
+        return {
+            "trend": [],
+            "store_breakdown": {s: 0.0 for s in ["S001", "S002", "S003", "S004", "S005"]},
+            "product_breakdown": {},
+            "model_breakdown": {},
+            "summary": {
+                "total_forecast": 0.0,
+                "days_count": 0,
+                "series_count": 0,
+            }
+        }
 
     daily = df.groupby("Date").agg(
         forecast_demand=("Forecast_Demand", "sum"),
@@ -295,8 +324,11 @@ def get_forecast_trend(
             "series_count": int(row["series_count"]),
         })
 
-    # Store comparison breakdown
-    store_breakdown = df.groupby("Store ID")["Forecast_Demand"].sum().round(2).to_dict()
+    # Store comparison breakdown - ensuring all 5 store nodes are present
+    all_stores = ["S001", "S002", "S003", "S004", "S005"]
+    store_totals = df.groupby("Store ID")["Forecast_Demand"].sum().round(2).to_dict()
+    store_breakdown = {s: store_totals.get(s, 0.0) for s in all_stores}
+
     # Product comparison breakdown (top 10)
     prod_breakdown = df.groupby("Product ID")["Forecast_Demand"].sum().round(2).sort_values(ascending=False).to_dict()
     # Model breakdown
