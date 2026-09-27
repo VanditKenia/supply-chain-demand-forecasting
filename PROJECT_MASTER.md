@@ -1,120 +1,200 @@
 # Supply Chain Demand Forecasting & Inventory Optimization
 
-## Phase 5 Implementation Status Update
+> **Project Master Document / Single Source of Truth**
 
-Phase 5 Demand Forecasting was completed on 2026-09-25 using the supplied `sales_data.csv` dataset and a clean Colab notebook.
+This document governs the current scope, methodology, architecture, validation standards, phase status, and documentation state of the project. It describes the implementation that exists on `main`; planned work is explicitly marked as such.
 
-### Phase 5 decisions implemented
+## 1. Project identity
 
-- Locked grain: Date × Store ID × Product ID
+- **Project:** Supply Chain Demand Forecasting & Inventory Optimization
+- **Repository:** `VanditKenia/supply-chain-demand-forecasting`
+- **Type:** Business Analytics / Demand Forecasting / Inventory Decision Support
+- **Primary objective:** Convert validated historical supply-chain data into demand forecasts, inventory-risk measurements, replenishment recommendations, and business-facing decision support.
+
+## 2. Current status
+
+**Current phase: Phase 8 — Documentation & Project Knowledge Base**
+
+Phases 0–7 have reached their documented current state. Phase 8 completes the documentation layer without modifying the forecasting methodology, inventory methodology, validated datasets, or application functionality.
+
+## 3. Phase status
+
+| Phase | Status | Deliverable / current state |
+|---|---|---|
+| Phase 0 — Setup | Complete | Repository, Git workflow, project structure |
+| Phase 1 — Dataset | Complete | 76,000-row validated retail dataset |
+| Phase 2 — Data Engineering | Complete | Data quality validation and MySQL/application schema |
+| Phase 3 — SQL Analytics | Complete | SQL analytical layer and demand analysis view |
+| Phase 4 — Data Analysis / EDA | Complete | Demand, seasonality, store/product, volatility and anomaly analysis |
+| Phase 5 — Demand Forecasting | Complete | 30-day forecasts for 100 Store × Product series |
+| Phase 6 — Inventory Optimization | Complete | 100 inventory decision records; base 7-day/95% scenario |
+| Phase 7 — Web Application Platform | Foundation complete | Next.js/FastAPI/MySQL/Docker foundation and analytical API contracts |
+| Phase 8 — Documentation | Complete with this commit | Professional project knowledge base |
+
+## 4. Phase 5 — Demand Forecasting
+
+Locked analytical grain: Date × Store ID × Product ID.
+
 - Target: Demand
-- Primary horizon: 30 days
+- Horizon: 30 days
 - Training: 2022-01-01 → 2023-11-30
 - Validation: 2023-12-01 → 2023-12-31
 - Final test: 2024-01-01 → 2024-01-30
-- No random time-series split
-- Final January 2024 Demand remained untouched until final evaluation
-- ML multi-step forecasting is recursive
-- Rolling features use past-only information
-- Units Sold, Inventory Level, and Units Ordered excluded from the main forecasting predictors
-- Genuine demand spikes retained
-- ARIMA warnings/failures recorded rather than hidden
-- Model selection performed from validation results only
-- No lead time fabricated
-
-### Phase 5 results
+- Series: 100 Store × Product
 
 Final January 2024 test:
+
 - MAE: 35.40
 - RMSE: 45.98
 - sMAPE: 41.20%
 
-Selected models across 100 series:
-- ARIMA(1,0,1): 35
-- HistGradientBoosting: 23
-- TunedRF_300_depth12_leaf1: 16
-- Random Forest: 15
-- Naive: 9
-- SeasonalNaive7: 2
+Selected model distribution:
 
-Known limitation:
-High-demand spikes are underpredicted. For observations with Demand >= 125, actual mean Demand was 158.04 versus forecast mean 106.72, with mean bias -51.32. Maximum actual Demand was 284 versus maximum forecast 146.
+| Model | Series |
+|---|---:|
+| ARIMA(1,0,1) | 35 |
+| HistGradientBoosting | 23 |
+| TunedRF_300_depth12_leaf1 | 16 |
+| Random Forest | 15 |
+| Naive | 9 |
+| SeasonalNaive7 | 2 |
 
-### Phase 5 deliverables
+Known limitation: high-demand observations are underpredicted. For Demand >= 125, actual mean = 158.04 and forecast mean = 106.72; mean bias = -51.32; actual maximum = 284 and forecast maximum = 146.
 
-- `notebooks/05_demand_forecasting.ipynb`
-- `data/processed/final_demand_forecasts.csv`
-- `PHASE_5_RESULTS.md`
+## 5. Phase 6 — Inventory Optimization
 
-### Phase 5 status
+Frozen Phase 5 forecasts are the demand input.
 
-**COMPLETE**
+Base assumptions:
 
-### Next phase
+- Lead Time = 7 days
+- Service Level = 95%
 
-Phase 6 — Inventory Optimization, using the frozen Phase 5 forecast output as the demand-input layer. Lead time, service level, safety stock, reorder point, stockout risk, and replenishment recommendations must use explicit assumptions where the source dataset does not provide the required information.
+Scenarios:
 
-## 29. Completed Work
+- Lead Time: 3 / 7 / 14 days
+- Service Level: 90% / 95% / 99%
 
-Update:
-- Phase 5 demand forecasting completed.
-- Chronological validation and final test completed.
-- Final 30-day forecast generated for all 100 Store × Product series.
-- Forecast integrity checks passed.
-- Final forecast output frozen for Phase 6 handoff.
+Core formulas:
 
-## 30. Pending Work
+```text
+Lead-Time Demand = sum of forecast demand over selected lead-time window
+Safety Stock = Z × Demand Std Dev × √Lead Time
+Reorder Point = Lead-Time Demand + Safety Stock
+Recommended Order Quantity = max(Reorder Point − Current Inventory, 0), rounded up
+```
 
-### Immediate Next Step
+Validated reconciliation:
 
-Phase 6 — Inventory Optimization using the frozen Phase 5 forecasts.
+- Total Forecast Demand = 278,398.48
+- Decision Units = 100
+- Current Inventory = 29,049
+- Safety Stock = 18,669.09
+- Reorder Point = 80,496.07
+- Inventory Gap = 51,447.07
+- Recommended Order = 52,083
+- High Risk = 95
+- Medium Risk = 2
+- Low Risk = 3
 
+Risk/excess classifications are business rules, not probabilities or financial-impact estimates.
 
-## Phase 7 — Supply Chain Intelligence Platform
+## 6. Phase 7 — Web Application Platform
 
-Phase 7 expands the presentation-oriented BI layer into an application-style decision-support platform.
+Architecture:
 
-### Platform stack
+```text
+Next.js / React / TypeScript
+          ↓
+FastAPI
+          ↓
+Data Service / MySQL
+          ↓
+Phase 5 + Phase 6 analytical outputs
+```
 
-- Next.js + React + TypeScript
-- Tailwind CSS
-- Framer Motion
-- Apache ECharts
-- Three.js / React Three Fiber
-- FastAPI
-- MySQL
-- Docker Compose
-- Power BI + DAX as the BI/analytical workspace
+Current backend routes:
 
-### Product experience
+- `GET /health`
+- `GET /api`
+- `GET /api/overview`
+- `GET /api/actions`
 
-The platform is organized around:
+Current frontend foundation renders Control Tower, Demand, Inventory, and Actions module cards.
 
-1. Control Tower
-2. Demand Intelligence
-3. Inventory Intelligence
-4. Action Center
-5. Store Explorer
-6. Product Explorer
-7. Power BI Analytics
+The broader blueprint includes Store Explorer, Product Explorer, cross-filtering, drill-through, 3D/network visualization, and Power BI workspace integration. Those are not represented as completed current functionality unless implemented in code.
 
-The frontend must use the real Phase 5 and Phase 6 analytical outputs. It must not fabricate real-time data, AI-generated insights, savings, ROI, or operational impact.
+Power BI remains a separate analytical layer.
 
-### Phase 7 status
+## 7. Data artifacts
 
-- [x] Platform architecture defined
-- [x] Frontend foundation committed
-- [x] FastAPI foundation committed
-- [x] MySQL schema committed
-- [x] Docker Compose foundation committed
-- [x] Design system committed
-- [ ] Synchronize validated Phase 5/6 artifacts into repository
-- [ ] Implement API data services
-- [ ] Implement Control Tower
-- [ ] Implement Demand Intelligence
-- [ ] Implement Inventory Intelligence
-- [ ] Implement Action Center
-- [ ] Implement Store/Product explorers
-- [ ] Implement meaningful 3D/network visualization
-- [ ] Integrate Power BI analytical workspace
-- [ ] QA and deployment
+Validated artifacts:
+
+| Artifact | Rows | Columns |
+|---|---:|---:|
+| sales_data.csv | 76,000 | 16 |
+| final_demand_forecasts.csv | 3,000 | 5 |
+| inventory_recommendations.csv | 100 | 21 |
+
+The repository's artifact manifest records SHA-256 hashes for the validated workspace files. The actual forecast and inventory CSVs are not currently committed to the GitHub tree; the application expects them at the documented mounted paths.
+
+## 8. Database source of truth
+
+Current application schema:
+
+`database/schema.sql`
+
+Database:
+
+`supply_chain_intelligence`
+
+Tables:
+
+- stores
+- products
+- forecasts
+- inventory_recommendations
+
+`sql/schema.sql` is a legacy placeholder and is not treated as the current application schema.
+
+## 9. Documentation set
+
+- [Project Overview](docs/PROJECT_OVERVIEW.md)
+- [Data Dictionary](docs/DATA_DICTIONARY.md)
+- [Data Pipeline](docs/DATA_PIPELINE.md)
+- [Forecasting Methodology](docs/FORECASTING_METHODOLOGY.md)
+- [Inventory Optimization](docs/INVENTORY_OPTIMIZATION.md)
+- [Platform Architecture](docs/PLATFORM_ARCHITECTURE.md)
+- [API Documentation](docs/API_DOCUMENTATION.md)
+- [Database Schema](docs/DATABASE_SCHEMA.md)
+- [Deployment](docs/DEPLOYMENT.md)
+- [Testing](docs/TESTING.md)
+- [Limitations](docs/LIMITATIONS.md)
+- [User Guide](docs/USER_GUIDE.md)
+
+## 10. Quality rules
+
+The project must:
+
+- never fabricate metrics or business impact,
+- preserve chronological forecasting integrity,
+- keep recommendations traceable to calculations,
+- document assumptions explicitly,
+- distinguish analytical artifacts from application behavior,
+- avoid calling local development infrastructure production deployment,
+- and update this master document whenever a material project decision changes.
+
+## 11. Change log
+
+| Date | Change |
+|---|---|
+| 2026-09-25 | Phase 5 forecasting completed and frozen |
+| 2026-09-25 | Phase 6 inventory optimization completed |
+| 2026-09-26 | Phase 7 platform foundation and API layer added |
+| 2026-09-27 | Phase 8 documentation and project knowledge base completed |
+
+## 12. Final project state
+
+The project now has a documented analytical chain from validated sales data through forecasting and inventory decision support into an application foundation.
+
+The documentation intentionally records remaining implementation/artifact gaps instead of presenting blueprint items as completed functionality.

@@ -1,231 +1,296 @@
 # Supply Chain Demand Forecasting & Inventory Optimization
 
-An end-to-end analytics project for demand forecasting, inventory-risk analysis, replenishment decision support, SQL analytics, EDA, and Power BI reporting.
+End-to-end demand forecasting and inventory decision-support project that converts historical retail data into 30-day forecasts, inventory-risk measurements, and replenishment recommendations.
 
-## Current Status
+## 1. Problem statement
 
-**Phase:** 5 — Demand Forecasting ✅ Complete  
-**Phase 4:** ✅ Complete  
-**Phase 6:** Ready to begin  
-**Status:** Active Development  
-**Dataset:** Retail Store Inventory and Demand Forecasting — selected and validated
+Retail inventory planning has two competing risks: stockouts and excess inventory. Historical sales data contains demand patterns, but raw observations do not directly provide a defensible future-demand estimate or an actionable inventory requirement.
 
-The selected dataset contains 76,000 records covering 760 consecutive days, 5 stores, and 20 products at the Date × Store ID × Product ID grain.
+This project builds an analytical chain from validated historical data to forecast-driven inventory decisions.
 
-### Completed Milestones
+## 2. Solution
 
-- Phase 0 — Project Setup ✅
-- Phase 1 — Dataset Validation ✅
-- Phase 2 — Data Engineering ✅
-- Phase 3 — SQL Analytics ✅
-- Phase 4 — EDA ✅
-- Phase 5 — Forecasting ✅
-- Phase 6 — Inventory Optimization ⏳
-- Phase 7 — Power BI ⏳
-- Phase 8 — Documentation ⏳
-- Phase 9 — Final Audit ⏳
+The project:
 
-## Dataset Validation
+1. validates a 76,000-row retail time-series dataset,
+2. analyzes demand at Store × Product level,
+3. evaluates multiple forecasting methods chronologically,
+4. selects a model independently for each Store × Product series,
+5. produces a frozen 30-day demand forecast,
+6. converts the forecast into lead-time demand, safety stock, reorder point, inventory gap, risk, and replenishment recommendations,
+7. exposes the analytical outputs through a FastAPI application layer,
+8. provides a Next.js/React web-platform foundation, and
+9. documents the entire system for reproducibility and review.
 
-- 76,000 rows
-- 16 original columns
-- 2022-01-01 → 2024-01-30
-- 760 consecutive daily dates
-- 5 stores
-- 20 products
-- 100 Store × Product combinations
-- 760 observations per Store × Product combination
-- 0 missing values
-- 0 duplicate grain records
-- 0 missing global dates
-- 0 internal Store × Product date gaps
-- complete balanced temporal panel
+## 3. Architecture
 
-## Analytical Grain
+```text
+Historical Sales
+      ↓
+Validation / SQL / EDA
+      ↓
+Phase 5: Demand Forecasting
+      ↓
+30-Day Forecast
+      ↓
+Phase 6: Inventory Optimization
+      ↓
+Risk + Recommended Order
+      ↓
+Phase 7: Web Platform
+      ├── Next.js / React
+      ├── FastAPI
+      └── MySQL schema
+      ↓
+Separate Power BI analytical layer
+```
 
-**One row = one Product × Store × Date**
+## 4. Key features
 
-Natural key:
+- Balanced 76,000-row daily retail panel
+- 100 Store × Product forecasting series
+- 30-day chronological forecast horizon
+- Per-series model selection
+- Leakage controls
+- Inventory optimization under explicit assumptions
+- Lead-time and service-level scenario analysis
+- Risk/action/replenishment decision layer
+- FastAPI overview and action endpoints
+- Next.js/React application foundation
+- MySQL schema
+- Docker Compose local stack
+- Documentation and validation trail
 
-`Date + Store ID + Product ID`
+## 5. Technology stack
 
-Forecasting target:
+| Layer | Technology |
+|---|---|
+| Analysis | Python, Pandas, NumPy |
+| Forecasting | Statsmodels, scikit-learn |
+| Database | MySQL 8.4 |
+| API | FastAPI, Uvicorn |
+| Frontend | Next.js 15, React 19, TypeScript |
+| UI motion | Framer Motion |
+| BI | Power BI / DAX |
+| Containers | Docker Compose |
+| Version control | Git / GitHub |
 
-**Demand**
+## 6. Project pipeline
 
-Demand is deliberately not substituted with Units Sold. The project treats Demand as the primary target while preserving the observed distinction between Demand and Units Sold.
+| Phase | State |
+|---|---|
+| Phase 0 — Setup | Complete |
+| Phase 1 — Dataset | Complete |
+| Phase 2 — Data Engineering | Complete |
+| Phase 3 — SQL Analytics | Complete |
+| Phase 4 — Data Analysis / EDA | Complete |
+| Phase 5 — Demand Forecasting | Complete |
+| Phase 6 — Inventory Optimization | Complete |
+| Phase 7 — Web Application Platform | Foundation complete |
+| Phase 8 — Documentation | Complete |
 
-## Phase 3 — SQL Analytics Completed
+## 7. Forecasting results
 
-The SQL analytics layer has been completed and validated.
-
-Final analytical view:
-
-`vw_demand_analysis`
-
-## Phase 4 — EDA Completed
-
-Phase 4 established the forecasting-readiness of the dataset and documented demand, seasonality, store/product differences, promotion association, pricing relationships, volatility, and retained upper-tail observations.
-
-## Phase 5 — Demand Forecasting Completed
-
-Phase 5 uses a leakage-controlled chronological forecasting workflow at the locked Date × Store ID × Product ID grain.
-
-### Chronological evaluation
+Chronological split:
 
 - Training: 2022-01-01 → 2023-11-30
 - Validation: 2023-12-01 → 2023-12-31
 - Final test: 2024-01-01 → 2024-01-30
-- Primary horizon: 30 days
-- 100 Store × Product series
+- Horizon: 30 days
 
-### Models evaluated
+Final January 2024 test:
 
-- Naive
-- Seasonal Naive (7-day)
-- ARIMA(1,0,1)
-- Random Forest
-- Tuned Random Forest
-- HistGradientBoosting
+| Metric | Result |
+|---|---:|
+| MAE | 35.40 |
+| RMSE | 45.98 |
+| sMAPE | 41.20% |
 
-All candidate models use the same December 2023 validation period. ML multi-step forecasts are recursive so future actual Demand does not enter future lag or rolling features.
+Selected models across 100 series:
 
-### Validation results
+| Model | Series |
+|---|---:|
+| ARIMA(1,0,1) | 35 |
+| HistGradientBoosting | 23 |
+| TunedRF_300_depth12_leaf1 | 16 |
+| Random Forest | 15 |
+| Naive | 9 |
+| SeasonalNaive7 | 2 |
 
-| Model | MAE | RMSE | sMAPE |
-|---|---:|---:|---:|
-| Naive | 41.99 | 53.04 | 43.11% |
-| Seasonal Naive 7 | 45.42 | 57.54 | 45.47% |
-| ARIMA(1,0,1) | 34.78 | 43.77 | 35.42% |
-| Random Forest | 35.13 | 43.89 | 35.56% |
-| HistGradientBoosting | 34.75 | 43.53 | 35.29% |
-| TunedRF_300_depth12_leaf1 | 34.73 | 43.49 | 35.28% |
+Known limitation: high-demand observations are underpredicted. Demand >= 125 had actual mean 158.04 versus forecast mean 106.72.
 
-### Validation-based model selection
+## 8. Inventory optimization results
 
-Selection was performed per Store × Product series using validation MAE, with RMSE and sMAPE used as tie-breakers where needed.
+Base scenario:
 
-- ARIMA(1,0,1): 35 series
-- HistGradientBoosting: 23 series
-- TunedRF_300_depth12_leaf1: 16 series
-- Random Forest: 15 series
-- Naive: 9 series
-- SeasonalNaive7: 2 series
+- Lead Time = 7 days
+- Service Level = 95%
 
-### Final January 2024 test
+Scenarios:
 
-The January actual Demand values were joined only after forecasts were generated and model decisions were frozen.
+- Lead Time: 3 / 7 / 14 days
+- Service Level: 90% / 95% / 99%
 
-- MAE: 35.40
-- RMSE: 45.98
-- sMAPE: 41.20%
+Core formulas:
 
-### Forecast integrity
+```text
+Safety Stock = Z × Demand Std Dev × √Lead Time
+Reorder Point = Lead-Time Demand + Safety Stock
+Recommended Order = max(Reorder Point − Current Inventory, 0), rounded up
+```
 
-Final output contains:
+Validated reconciliation:
 
-- 3,000 forecast rows
-- 100 Store × Product series
-- 30 forecast dates
-- no duplicate forecast keys
-- no missing forecasts
-- all forecasts finite
-- complete 2024-01-01 → 2024-01-30 horizon
+| Metric | Value |
+|---|---:|
+| Total Forecast Demand | 278,398.48 |
+| Decision Units | 100 |
+| Recommended Order | 52,083 |
+| High Risk | 95 |
+| Medium Risk | 2 |
+| Low Risk | 3 |
 
-### Known limitation
+These are planning outputs under explicit assumptions, not guaranteed savings or stockout probabilities.
 
-The final test error analysis shows substantial underprediction of high-demand observations:
+## 9. Platform
 
-- High-demand threshold: 125
-- Actual high-demand mean: 158.04
-- Forecast high-demand mean: 106.72
-- Mean bias: -51.32
-- Actual maximum: 284
-- Forecast maximum: 146
+The current application foundation contains:
 
-No genuine demand spikes were removed to improve performance. This limitation must be considered in downstream inventory-risk analysis.
+- Control Tower
+- Demand
+- Inventory
+- Actions
+- FastAPI overview endpoint
+- FastAPI action endpoint with risk filter
+- MySQL application schema
+- Docker Compose stack
 
-### Leakage controls
+The repository blueprint also describes Store Explorer, Product Explorer, deeper interactive analytics, and Power BI workspace integration. Those areas should not be interpreted as completed functionality unless their implementation is present.
 
-The main ML forecasting workflow excludes Units Sold, Inventory Level, and Units Ordered because they are leakage-prone or may not be available at forecast generation time. Future actual Demand is never used as a predictor. Conditional variables are only candidates when forecast-time availability is defensible.
+## 10. Screenshots
 
-### Phase 5 Output
+Place validated screenshots under `assets/screenshots/` and reference them here when available.
 
-- Notebook: `notebooks/05_demand_forecasting.ipynb`
-- Forecast output: `data/processed/final_demand_forecasts.csv`
-- Results documentation: `PHASE_5_RESULTS.md`
+```text
+assets/screenshots/
+├── control-tower.png
+├── demand-intelligence.png
+├── inventory-intelligence.png
+└── action-center.png
+```
 
-## Phase 6 — Inventory Optimization
+No screenshots are claimed as committed by this documentation update.
 
-The frozen Phase 5 forecasts are now the demand-input layer for inventory optimization.
-
-Lead time is not present in the source data and will not be fabricated. Any lead time used in Phase 6 must be stated explicitly as a scenario assumption.
-
-## Repository Structure
+## 11. Repository structure
 
 ```text
 supply-chain-demand-forecasting/
 ├── README.md
 ├── PROJECT_MASTER.md
-├── requirements.txt
-├── .gitignore
+├── PHASE_5_RESULTS.md
+├── PHASE_6_RESULTS.md
+├── docs/
+├── backend/
+├── frontend/
+├── database/
 ├── data/
 ├── sql/
 ├── notebooks/
-├── src/
+├── platform/
 ├── dashboard/
 ├── reports/
-└── assets/
+├── assets/
+└── docker-compose.yml
 ```
 
-See `PROJECT_MASTER.md` and `PHASE_5_RESULTS.md` for methodology, assumptions, decisions, limitations, and forecasting results.
+## 12. Setup
 
+### Clone
 
-## Phase 7 — Supply Chain Intelligence Platform
+```bash
+git clone https://github.com/VanditKenia/supply-chain-demand-forecasting.git
+cd supply-chain-demand-forecasting
+```
 
-Phase 7 expands the presentation-oriented BI layer into an application-style decision-support platform.
+### Start the local stack
 
-### Platform stack
+```bash
+docker compose up
+```
 
-- Next.js + React + TypeScript
-- Tailwind CSS
-- Framer Motion
-- Apache ECharts
-- Three.js / React Three Fiber
-- FastAPI
-- MySQL
-- Docker Compose
-- Power BI + DAX as the BI/analytical workspace
+Services:
 
-### Product experience
+- Frontend: port 3000
+- Backend: port 8000
+- MySQL: port 3306
 
-The platform is organized around:
+### Required analytical artifacts
 
-1. Control Tower
-2. Demand Intelligence
-3. Inventory Intelligence
-4. Action Center
-5. Store Explorer
-6. Product Explorer
-7. Power BI Analytics
+The application expects:
 
-The frontend must use the real Phase 5 and Phase 6 analytical outputs. It must not fabricate real-time data, AI-generated insights, savings, ROI, or operational impact.
+```text
+data/raw/sales_data.csv
+data/processed/final_demand_forecasts.csv
+data/processed/inventory_recommendations.csv
+```
 
-### Phase 7 status
+The validated forecast and inventory artifacts are recorded in `data/processed/ARTIFACT_MANIFEST.md` but are not currently committed to the GitHub tree. Do not replace them with fabricated placeholders.
 
-- [x] Platform architecture defined
-- [x] Frontend foundation committed
-- [x] FastAPI foundation committed
-- [x] MySQL schema committed
-- [x] Docker Compose foundation committed
-- [x] Design system committed
-- [ ] Synchronize validated Phase 5/6 artifacts into repository
-- [ ] Implement API data services
-- [ ] Implement Control Tower
-- [ ] Implement Demand Intelligence
-- [ ] Implement Inventory Intelligence
-- [ ] Implement Action Center
-- [ ] Implement Store/Product explorers
-- [ ] Implement meaningful 3D/network visualization
-- [ ] Integrate Power BI analytical workspace
-- [ ] QA and deployment
+## 13. Usage
+
+1. Start the Docker Compose stack.
+2. Open the frontend on port 3000.
+3. Use the platform foundation to navigate the Control Tower, Demand, Inventory, and Actions areas.
+4. The backend overview route provides reconciled analytical summary metrics once artifacts are mounted.
+5. Use `/api/actions?risk=High` to filter replenishment decisions by risk.
+6. Use Power BI separately for deeper analytical reporting where its artifacts are maintained.
+
+## 14. Limitations
+
+- High-demand forecast underestimation
+- Retrospective planning data
+- 7-day lead time is an assumption
+- 95% service level is an assumption
+- No live telemetry
+- No real-time ERP/WMS integration
+- Power BI is a separate analytical layer
+- Phase 7 is currently a foundation rather than a fully completed operational product
+- No guaranteed financial impact is claimed
+
+See [Limitations](docs/LIMITATIONS.md).
+
+## 15. Future scope
+
+Future work may include:
+
+- safe synchronization of validated Phase 5/6 artifacts into the repository/runtime,
+- implementation of deeper frontend analytical pages,
+- richer filtering and drill-through,
+- Store/Product exploration,
+- completed Power BI integration where required,
+- stronger automated API/frontend tests,
+- production deployment only after appropriate operational controls are added.
+
+These are future scope items, not current capabilities.
+
+## 16. Documentation
+
+- [Project Overview](docs/PROJECT_OVERVIEW.md)
+- [Data Dictionary](docs/DATA_DICTIONARY.md)
+- [Data Pipeline](docs/DATA_PIPELINE.md)
+- [Forecasting Methodology](docs/FORECASTING_METHODOLOGY.md)
+- [Inventory Optimization](docs/INVENTORY_OPTIMIZATION.md)
+- [Platform Architecture](docs/PLATFORM_ARCHITECTURE.md)
+- [API Documentation](docs/API_DOCUMENTATION.md)
+- [Database Schema](docs/DATABASE_SCHEMA.md)
+- [Deployment](docs/DEPLOYMENT.md)
+- [Testing](docs/TESTING.md)
+- [Limitations](docs/LIMITATIONS.md)
+- [User Guide](docs/USER_GUIDE.md)
+- [Project Master](PROJECT_MASTER.md)
+
+## 17. Author
+
+**Vandit Kenia**
+
+Supply Chain Demand Forecasting & Inventory Optimization — portfolio project focused on analytics, forecasting, inventory decision support, SQL, and application integration.
