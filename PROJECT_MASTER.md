@@ -7,7 +7,7 @@ This document governs the current scope, methodology, architecture, validation s
 ## 1. Project identity
 
 - **Project:** Supply Chain Intelligence Platform
-- **Repository:** \`VanditKenia/supply-chain-demand-forecasting\`
+- **Repository:** `VanditKenia/supply-chain-demand-forecasting`
 - **Type:** Supply Chain Analytics / Demand Forecasting / Inventory Decision Support / Web Platform
 - **Primary objective:** Convert validated historical supply-chain data into demand forecasts, inventory-risk measurements, replenishment recommendations, and business-facing decision support.
 
@@ -79,12 +79,12 @@ Scenarios:
 
 Core formulas:
 
-\`\`\`text
+```text
 Lead-Time Demand = sum of forecast demand over selected lead-time window
 Safety Stock = Z × Demand Std Dev × √Lead Time
 Reorder Point = Lead-Time Demand + Safety Stock
 Recommended Order Quantity = max(Reorder Point − Current Inventory, 0), rounded up
-\`\`\`
+```
 
 Validated reconciliation:
 
@@ -105,7 +105,7 @@ Risk/excess classifications are business rules, not probabilities or financial-i
 
 Architecture:
 
-\`\`\`text
+```text
 Next.js / React / TypeScript
           |
        FastAPI
@@ -113,7 +113,7 @@ Next.js / React / TypeScript
     Data Service
           |
  Phase 5 + Phase 6 outputs
-\`\`\`
+```
 
 Current frontend workspaces:
 
@@ -125,10 +125,10 @@ Current frontend workspaces:
 
 Current backend routes include:
 
-- \`GET /health\`
-- \`GET /api\`
-- \`GET /api/overview\`
-- \`GET /api/actions\`
+- `GET /health`
+- `GET /api`
+- `GET /api/overview`
+- `GET /api/actions`
 
 Power BI remains a separate analytical layer.
 
@@ -153,25 +153,25 @@ The documentation must distinguish implemented behavior from future blueprint it
 
 ## 8. Phase 9 — Cloud Deployment
 
-The application is publicly deployed from GitHub \`main\` using Render.
+The application is publicly deployed from GitHub `main` using Render.
 
 ### Frontend
 
 - Platform: Render Web Service
 - Framework: Next.js 15 / React 19
-- Public URL: \`https://supply-chain-intelligence-fyul.onrender.com/\`
+- Public URL: `https://supply-chain-intelligence-fyul.onrender.com/`
 
 ### Backend
 
 - Platform: Render Web Service
 - Framework: FastAPI / Uvicorn
-- Public URL: \`https://supply-chain-demand-forecasting-wc7g.onrender.com/\`
-- Health endpoint: \`/health\`
-- Verified response includes \`status: ok\` and \`data_ready: true\`
+- Public URL: `https://supply-chain-demand-forecasting-wc7g.onrender.com/`
+- Health endpoint: `/health`
+- Verified response includes `status: ok` and `data_ready: true`
 
 ### Deployment verification
 
-- GitHub \`main\` connected
+- GitHub `main` connected
 - Backend deployed
 - Backend health verified
 - Forecast/inventory data available at runtime
@@ -201,11 +201,11 @@ The artifact manifest records SHA-256 hashes and validation results.
 
 Current application schema:
 
-\`database/schema.sql\`
+`database/schema.sql`
 
 Database:
 
-\`supply_chain_intelligence\`
+`supply_chain_intelligence`
 
 Tables:
 
@@ -214,7 +214,7 @@ Tables:
 - forecasts
 - inventory_recommendations
 
-\`sql/schema.sql\` is a legacy placeholder and is not treated as the current application schema.
+`sql/schema.sql` is a legacy placeholder and is not treated as the current application schema.
 
 ## 11. Phase 10 — Portfolio Hardening
 
