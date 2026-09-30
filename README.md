@@ -12,7 +12,7 @@ A supply-chain intelligence platform that turns historical retail demand into **
 
 ## The project in one picture
 
-\`\`\`text
+```text
                          SUPPLY CHAIN INTELLIGENCE
                                   |
              +--------------------+--------------------+
@@ -45,7 +45,7 @@ A supply-chain intelligence platform that turns historical retail demand into **
                                   |
                                   v
                               Render Cloud
-\`\`\`
+```
 
 ---
 
@@ -106,7 +106,7 @@ These metrics are reported from the frozen chronological test evaluation and are
 
 The system evaluates multiple forecasting strategies and selects a model independently for each Store × Product series.
 
-\`\`\`text
+```text
 MODEL SELECTION ACROSS 100 SERIES
 
 ARIMA(1,0,1)                 35
@@ -117,7 +117,7 @@ Naive                         9
 Seasonal Naive                2
                              ---
                              100
-\`\`\`
+```
 
 ### Evaluation design
 
@@ -141,7 +141,7 @@ Frozen forecasts feed the inventory optimization layer.
 
 ### Core logic
 
-\`\`\`text
+```text
 Lead-Time Demand
         |
         v
@@ -158,11 +158,11 @@ Recommended Order
         |
         v
 Risk / Action
-\`\`\`
+```
 
 ### Core formulas
 
-\`\`\`text
+```text
 Safety Stock = Z × Demand Std Dev × sqrt(Lead Time)
 
 Reorder Point = Lead-Time Demand + Safety Stock
@@ -170,7 +170,7 @@ Reorder Point = Lead-Time Demand + Safety Stock
 Recommended Order
 = max(Reorder Point − Current Inventory, 0)
   rounded up
-\`\`\`
+```
 
 ### Validated reconciliation
 
@@ -192,7 +192,7 @@ These are planning outputs under explicit assumptions, not guaranteed savings or
 
 ## Architecture
 
-\`\`\`text
+```text
 +---------------------------------------------------------------+
 |                       USER / INTERVIEWER                      |
 +-------------------------------+-------------------------------+
@@ -227,7 +227,7 @@ These are planning outputs under explicit assumptions, not guaranteed savings or
 
 Local engineering layer:
 Docker Compose → Next.js + FastAPI + MySQL
-\`\`\`
+```
 
 ---
 
@@ -235,7 +235,7 @@ Docker Compose → Next.js + FastAPI + MySQL
 
 The application is deployed as two Render web services from the same GitHub repository:
 
-\`\`\`text
+```text
                     GitHub / main
                          |
               +----------+----------+
@@ -248,7 +248,7 @@ The application is deployed as two Render web services from the same GitHub repo
                          |
                          v
                  Live application
-\`\`\`
+```
 
 ### Deployment status
 
@@ -267,7 +267,7 @@ The application is deployed as two Render web services from the same GitHub repo
 
 ## Project evolution
 
-\`\`\`text
+```text
 PHASE 0   Setup                         ✓
 PHASE 1   Dataset                       ✓
 PHASE 2   Data Engineering              ✓
@@ -279,7 +279,7 @@ PHASE 7   Intelligence Platform          ✓
 PHASE 8   Documentation                  ✓
 PHASE 9   Cloud Deployment               ✓
 PHASE 10  Portfolio Hardening            ◐ CURRENT
-\`\`\`
+```
 
 ### Phase 9 added
 
@@ -297,9 +297,9 @@ The validated artifact manifest records the current analytical files:
 
 | Artifact | Rows | Columns | Status |
 |---|---:|---:|---|
-| \`sales_data.csv\` | 76,000 | 16 | Verified |
-| \`final_demand_forecasts.csv\` | 3,000 | 5 | Verified |
-| \`inventory_recommendations.csv\` | 100 | 21 | Verified |
+| `sales_data.csv` | 76,000 | 16 | Verified |
+| `final_demand_forecasts.csv` | 3,000 | 5 | Verified |
+| `inventory_recommendations.csv` | 100 | 21 | Verified |
 
 See [ARTIFACT_MANIFEST.md](data/processed/ARTIFACT_MANIFEST.md) for validation and SHA-256 hashes.
 
@@ -350,7 +350,7 @@ See [Limitations](docs/LIMITATIONS.md).
 
 ## Repository map
 
-\`\`\`text
+```text
 supply-chain-demand-forecasting/
 |
 ├── README.md                    ← You are here
@@ -386,7 +386,7 @@ supply-chain-demand-forecasting/
 ├── reports/
 ├── assets/
 └── docker-compose.yml
-\`\`\`
+```
 
 ---
 
@@ -394,22 +394,22 @@ supply-chain-demand-forecasting/
 
 ### Clone
 
-\`\`\`bash
+```bash
 git clone https://github.com/VanditKenia/supply-chain-demand-forecasting.git
 cd supply-chain-demand-forecasting
-\`\`\`
+```
 
 ### Docker Compose
 
-\`\`\`bash
+```bash
 docker compose up
-\`\`\`
+```
 
 Local services:
 
-- Frontend: \`http://localhost:3000\`
-- Backend: \`http://localhost:8000\`
-- MySQL: \`localhost:3306\`
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:8000`
+- MySQL: `localhost:3306`
 
 For detailed deployment and runtime requirements, see [Deployment](docs/DEPLOYMENT.md).
 
