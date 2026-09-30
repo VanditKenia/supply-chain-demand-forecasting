@@ -1,21 +1,21 @@
-# Supply Chain Demand Forecasting & Inventory Optimization
+# Supply Chain Intelligence Platform
 
 > **Project Master Document / Single Source of Truth**
 
-This document governs the current scope, methodology, architecture, validation standards, phase status, and documentation state of the project. It describes the implementation that exists on `main`; planned work is explicitly marked as such.
+This document governs the current scope, methodology, architecture, validation standards, phase status, deployment posture, and documentation state of the project.
 
 ## 1. Project identity
 
-- **Project:** Supply Chain Demand Forecasting & Inventory Optimization
-- **Repository:** `VanditKenia/supply-chain-demand-forecasting`
-- **Type:** Business Analytics / Demand Forecasting / Inventory Decision Support
+- **Project:** Supply Chain Intelligence Platform
+- **Repository:** \`VanditKenia/supply-chain-demand-forecasting\`
+- **Type:** Supply Chain Analytics / Demand Forecasting / Inventory Decision Support / Web Platform
 - **Primary objective:** Convert validated historical supply-chain data into demand forecasts, inventory-risk measurements, replenishment recommendations, and business-facing decision support.
 
 ## 2. Current status
 
-**Current phase: Phase 8 — Documentation & Project Knowledge Base**
+**Current phase: Phase 10 — Portfolio Hardening**
 
-Phases 0–7 have reached their documented current state. Phase 8 completes the documentation layer without modifying the forecasting methodology, inventory methodology, validated datasets, or application functionality.
+Phases 0–9 are complete at their documented current scope. Phase 9 added the public Render deployment of the Next.js frontend and FastAPI backend. Phase 10 focuses on presentation quality, interview readiness, validation, and engineering hardening.
 
 ## 3. Phase status
 
@@ -23,13 +23,15 @@ Phases 0–7 have reached their documented current state. Phase 8 completes the 
 |---|---|---|
 | Phase 0 — Setup | Complete | Repository, Git workflow, project structure |
 | Phase 1 — Dataset | Complete | 76,000-row validated retail dataset |
-| Phase 2 — Data Engineering | Complete | Data quality validation and MySQL/application schema |
-| Phase 3 — SQL Analytics | Complete | SQL analytical layer and demand analysis view |
+| Phase 2 — Data Engineering | Complete | Data quality validation and application schema |
+| Phase 3 — SQL Analytics | Complete | SQL analytical layer and demand analysis |
 | Phase 4 — Data Analysis / EDA | Complete | Demand, seasonality, store/product, volatility and anomaly analysis |
 | Phase 5 — Demand Forecasting | Complete | 30-day forecasts for 100 Store × Product series |
 | Phase 6 — Inventory Optimization | Complete | 100 inventory decision records; base 7-day/95% scenario |
-| Phase 7 — Web Application Platform | Foundation complete | Next.js/FastAPI/MySQL/Docker foundation and analytical API contracts |
-| Phase 8 — Documentation | Complete with this commit | Professional project knowledge base |
+| Phase 7 — Web Application Platform | Complete | Next.js/FastAPI/MySQL/Docker foundation and operational workspaces |
+| Phase 8 — Documentation | Complete | Professional project knowledge base |
+| Phase 9 — Cloud Deployment | Complete | Public Render frontend + FastAPI deployment |
+| Phase 10 — Portfolio Hardening | Current | README/product presentation, validation, interview readiness |
 
 ## 4. Phase 5 — Demand Forecasting
 
@@ -59,7 +61,7 @@ Selected model distribution:
 | Naive | 9 |
 | SeasonalNaive7 | 2 |
 
-Known limitation: high-demand observations are underpredicted. For Demand >= 125, actual mean = 158.04 and forecast mean = 106.72; mean bias = -51.32; actual maximum = 284 and forecast maximum = 146.
+Known limitation: high-demand observations are underpredicted. For Demand >= 125, actual mean = 158.04 and forecast mean = 106.72; mean bias = -51.32.
 
 ## 5. Phase 6 — Inventory Optimization
 
@@ -77,12 +79,12 @@ Scenarios:
 
 Core formulas:
 
-```text
+\`\`\`text
 Lead-Time Demand = sum of forecast demand over selected lead-time window
 Safety Stock = Z × Demand Std Dev × √Lead Time
 Reorder Point = Lead-Time Demand + Safety Stock
 Recommended Order Quantity = max(Reorder Point − Current Inventory, 0), rounded up
-```
+\`\`\`
 
 Validated reconciliation:
 
@@ -103,30 +105,87 @@ Risk/excess classifications are business rules, not probabilities or financial-i
 
 Architecture:
 
-```text
+\`\`\`text
 Next.js / React / TypeScript
-          ↓
-FastAPI
-          ↓
-Data Service / MySQL
-          ↓
-Phase 5 + Phase 6 analytical outputs
-```
+          |
+       FastAPI
+          |
+    Data Service
+          |
+ Phase 5 + Phase 6 outputs
+\`\`\`
 
-Current backend routes:
+Current frontend workspaces:
 
-- `GET /health`
-- `GET /api`
-- `GET /api/overview`
-- `GET /api/actions`
+1. Control Tower
+2. Demand Intelligence
+3. Inventory Intelligence
+4. Action Center
+5. Analytics
 
-Current frontend foundation renders Control Tower, Demand, Inventory, and Actions module cards.
+Current backend routes include:
 
-The broader blueprint includes Store Explorer, Product Explorer, cross-filtering, drill-through, 3D/network visualization, and Power BI workspace integration. Those are not represented as completed current functionality unless implemented in code.
+- \`GET /health\`
+- \`GET /api\`
+- \`GET /api/overview\`
+- \`GET /api/actions\`
 
 Power BI remains a separate analytical layer.
 
-## 7. Data artifacts
+## 7. Phase 8 — Documentation
+
+The documentation layer includes:
+
+- Project Overview
+- Data Dictionary
+- Data Pipeline
+- Forecasting Methodology
+- Inventory Optimization
+- Platform Architecture
+- API Documentation
+- Database Schema
+- Deployment
+- Testing
+- Limitations
+- User Guide
+
+The documentation must distinguish implemented behavior from future blueprint items.
+
+## 8. Phase 9 — Cloud Deployment
+
+The application is publicly deployed from GitHub \`main\` using Render.
+
+### Frontend
+
+- Platform: Render Web Service
+- Framework: Next.js 15 / React 19
+- Public URL: \`https://supply-chain-intelligence-fyul.onrender.com/\`
+
+### Backend
+
+- Platform: Render Web Service
+- Framework: FastAPI / Uvicorn
+- Public URL: \`https://supply-chain-demand-forecasting-wc7g.onrender.com/\`
+- Health endpoint: \`/health\`
+- Verified response includes \`status: ok\` and \`data_ready: true\`
+
+### Deployment verification
+
+- GitHub \`main\` connected
+- Backend deployed
+- Backend health verified
+- Forecast/inventory data available at runtime
+- Frontend deployed
+- Frontend-to-backend communication verified
+- All five application workspaces verified manually
+
+### Free-tier behavior
+
+Render Free Web Services may spin down after inactivity. This is a service lifecycle behavior, not deletion of the deployment. A later request can wake the service and may experience a cold-start delay.
+
+The deployment is intended for portfolio/demo access and is not represented as enterprise production infrastructure.
+
+## 9. Data artifacts
 
 Validated artifacts:
 
@@ -136,17 +195,17 @@ Validated artifacts:
 | final_demand_forecasts.csv | 3,000 | 5 |
 | inventory_recommendations.csv | 100 | 21 |
 
-The repository's artifact manifest records SHA-256 hashes for the validated workspace files. The actual forecast and inventory CSVs are not currently committed to the GitHub tree; the application expects them at the documented mounted paths.
+The artifact manifest records SHA-256 hashes and validation results.
 
-## 8. Database source of truth
+## 10. Database source of truth
 
 Current application schema:
 
-`database/schema.sql`
+\`database/schema.sql\`
 
 Database:
 
-`supply_chain_intelligence`
+\`supply_chain_intelligence\`
 
 Tables:
 
@@ -155,24 +214,23 @@ Tables:
 - forecasts
 - inventory_recommendations
 
-`sql/schema.sql` is a legacy placeholder and is not treated as the current application schema.
+\`sql/schema.sql\` is a legacy placeholder and is not treated as the current application schema.
 
-## 9. Documentation set
+## 11. Phase 10 — Portfolio Hardening
 
-- [Project Overview](docs/PROJECT_OVERVIEW.md)
-- [Data Dictionary](docs/DATA_DICTIONARY.md)
-- [Data Pipeline](docs/DATA_PIPELINE.md)
-- [Forecasting Methodology](docs/FORECASTING_METHODOLOGY.md)
-- [Inventory Optimization](docs/INVENTORY_OPTIMIZATION.md)
-- [Platform Architecture](docs/PLATFORM_ARCHITECTURE.md)
-- [API Documentation](docs/API_DOCUMENTATION.md)
-- [Database Schema](docs/DATABASE_SCHEMA.md)
-- [Deployment](docs/DEPLOYMENT.md)
-- [Testing](docs/TESTING.md)
-- [Limitations](docs/LIMITATIONS.md)
-- [User Guide](docs/USER_GUIDE.md)
+Current objectives:
 
-## 10. Quality rules
+- Maintain an inspectable, product-style GitHub landing page
+- Keep public deployment links visible
+- Preserve analytical evidence and limitations
+- Verify live application behavior
+- Improve interview/demo readiness
+- Avoid claiming unimplemented capabilities
+- Add stronger automated testing and operational controls where justified
+
+Phase 10 is presentation and engineering hardening, not a license to alter validated forecasting results.
+
+## 12. Quality rules
 
 The project must:
 
@@ -181,10 +239,10 @@ The project must:
 - keep recommendations traceable to calculations,
 - document assumptions explicitly,
 - distinguish analytical artifacts from application behavior,
-- avoid calling local development infrastructure production deployment,
+- distinguish portfolio deployment from enterprise production infrastructure,
 - and update this master document whenever a material project decision changes.
 
-## 11. Change log
+## 13. Change log
 
 | Date | Change |
 |---|---|
@@ -192,9 +250,14 @@ The project must:
 | 2026-09-25 | Phase 6 inventory optimization completed |
 | 2026-09-26 | Phase 7 platform foundation and API layer added |
 | 2026-09-27 | Phase 8 documentation and project knowledge base completed |
+| 2026-09-30 | Phase 9 cloud deployment completed on Render |
+| 2026-09-30 | README redesigned as product-style project landing page |
+| 2026-09-30 | Phase 10 portfolio hardening started |
 
-## 12. Final project state
+## 14. Final current state
 
-The project now has a documented analytical chain from validated sales data through forecasting and inventory decision support into an application foundation.
+The project now spans:
 
-The documentation intentionally records remaining implementation/artifact gaps instead of presenting blueprint items as completed functionality.
+**Validated data → forecasting → inventory optimization → operational web platform → documentation → public cloud deployment.**
+
+The public application is live and the repository landing page now presents the project as a supply-chain intelligence product rather than a conventional notebook repository.
